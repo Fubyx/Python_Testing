@@ -16,7 +16,7 @@ max_missed_frames = 0  # Maximum allowed missed frames before discarding a circl
 # Initialize variables for tracking
 consecutive_frames = {}  # Dictionary to store frame counts and missed frames
 tracked_circles = set()  # Set to store circles currently being tracked
-
+y_starting_point = cap.get(4)/3 # Starting point to filter circles in the top third of the image
 while True:
     # Capture a frame from the webcam
     ret, frame = cap.read()
@@ -24,7 +24,6 @@ while True:
     # Convert the frame to grayscale and apply Gaussian blur
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
     # Detect circles using Hough transform
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
     """
@@ -40,7 +39,7 @@ while True:
     if circles is not None:
         circles = np.round(circles[0, :]).astype("int")
         for (x, y, r) in circles:
-            if r > 10:  # Ignore small circles
+            if (r > 10) & (y > y_starting_point):  # Ignore small circles and circles below the starting point
                 circle_key = (x, y, r)
 
                 # Check if circle is newly detected or already tracked
@@ -77,6 +76,7 @@ while True:
             if np.all(color_variance < color_threshold):
                 # Draw the circle if color is consistent
                 cv2.circle(frame, (x, y), r, circle_color, circle_thickness)
+                #print(y)
 
     #"""
     
