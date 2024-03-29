@@ -19,10 +19,21 @@ tracked_circles = set()  # Set to store circles currently being tracked
 y_starting_point = cap.get(4)/3 # Starting point to filter circles in the top third of the image
 while True:
     # Capture a frame from the webcam
+      # Capture a frame from the webcam
     ret, frame = cap.read()
 
-    # Convert the frame to grayscale and apply Gaussian blur
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # Create a copy for drawing contours (avoid modifying original frame)
+    contour_frame = frame.copy()
+
+    # Find all contours
+    cnts = cv2.findContours(cv2.cvtColor(contour_frame, cv2.COLOR_BGR2GRAY), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+
+    # Draw contours in black with -1 thickness to fill the entire area
+    cv2.drawContours(contour_frame, cnts, -1, (0, 0, 0), -1)
+
+    # Convert to grayscale and apply blur on the contour_frame
+    gray = cv2.cvtColor(contour_frame, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     # Detect circles using Hough transform
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
@@ -37,6 +48,7 @@ while True:
     """
     # Update tracking information (pre-color check)
     if circles is not None:
+        print(circles.size())
         circles = np.round(circles[0, :]).astype("int")
         for (x, y, r) in circles:
             if (r > 10) & (y > y_starting_point):  # Ignore small circles and circles below the starting point

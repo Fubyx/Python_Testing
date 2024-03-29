@@ -21,11 +21,18 @@ while True:
     # Capture a frame from the webcam
     ret, frame = cap.read()
 
-    # Convert the frame to grayscale and apply Gaussian blur
+    # Convert frame to grayscale for adaptive thresholding (temporary)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    # Detect circles using Hough transform
+
+    # Apply adaptive thresholding
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 51, 2)
+
+    # Apply Gaussian blur on the thresholded image
+    blurred = cv2.GaussianBlur(thresh, (5, 5), 0)
+
+    # Detect circles using Hough transform on the blurred thresholded image
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
+  
     """
     #If circles are detected, draw a red circle around the largest one 
     if circles is not None:
@@ -79,7 +86,7 @@ while True:
                 #print(y)
 
     #"""
-    
+    frame = thresh
     # Display the resulting frame
     cv2.imshow("Frame", frame)
 

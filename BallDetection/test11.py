@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
+
 
 # Load the video capture device (i.e., the webcam)
 cap = cv2.VideoCapture(0)
@@ -16,16 +18,93 @@ max_missed_frames = 0  # Maximum allowed missed frames before discarding a circl
 # Initialize variables for tracking
 consecutive_frames = {}  # Dictionary to store frame counts and missed frames
 tracked_circles = set()  # Set to store circles currently being tracked
-y_starting_point = cap.get(4)/3 # Starting point to filter circles in the top third of the image
+
 while True:
     # Capture a frame from the webcam
     ret, frame = cap.read()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    """
+    
+    
 
     # Convert the frame to grayscale and apply Gaussian blur
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
     # Detect circles using Hough transform
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
+    """
+    #https://docs.opencv.org/4.x/d5/d0f/tutorial_py_gradients.html
+
+    # Convert the frame to grayscale and apply Gaussian blur
+    #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    """
+    plt.subplot(2,2,1),plt.imshow(gray,cmap = 'gray')
+    plt.title('Gray'), plt.xticks([]), plt.yticks([])
+
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    plt.subplot(2,2,2),plt.imshow(blurred,cmap = 'gray')
+    plt.title('Blurred'), plt.xticks([]), plt.yticks([])
+
+    laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
+
+    plt.subplot(2,2,3),plt.imshow(laplacian,cmap = 'gray')
+    plt.title('Laplacian also Blurred'), plt.xticks([]), plt.yticks([])
+    
+
+    img = cv2.imread('BallDetection/balltemplate.jpg')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    assert img is not None, "file could not be read, check with os.path.exists()"
+    
+    laplacian = cv2.Laplacian(img,cv2.CV_64F)
+    sobelx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=5)
+    sobely = cv2.Sobel(img,cv2.CV_64F,0,1,ksize=5)
+    
+    plt.subplot(2,2,1),plt.imshow(img,cmap = 'gray')
+    plt.title('Original'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2,2,2),plt.imshow(laplacian,cmap = 'gray')
+    plt.title('Laplacian'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2,2,3),plt.imshow(sobelx,cmap = 'gray')
+    plt.title('Sobel X'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2,2,4),plt.imshow(sobely,cmap = 'gray')
+    plt.title('Sobel Y'), plt.xticks([]), plt.yticks([])
+
+    """
+
+    #https://pyimagesearch.com/2021/05/12/image-gradients-with-opencv-sobel-and-scharr/
+
+    # set the kernel size, depending on whether we are using the Sobel
+    # operator of the Scharr operator, then compute the gradients along
+    # the x and y axis, respectively
+    ksize = 3
+    gX = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=ksize)
+    gY = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=ksize)
+    # the gradient magnitude images are now of the floating point data
+    # type, so we need to take care to convert them back a to unsigned
+    # 8-bit integer representation so other OpenCV functions can operate
+    # on them and visualize them
+    gX = cv2.convertScaleAbs(gX)
+    gY = cv2.convertScaleAbs(gY)
+    # combine the gradient representations into a single image
+    combined = cv2.addWeighted(gX, 0.5, gY, 0.5, 0)
+    # show our output images
+    cv2.imshow("Sobel/Scharr X", gX)
+    cv2.imshow("Sobel/Scharr Y", gY)
+    cv2.imshow("Sobel/Scharr Combined", combined)
+    #cv2.waitKey(0)
+    plt.show()
+
+    
+    # convert back to uint8 
+    #laplacian = cv2.convertScaleAbs(laplacian)
+    #laplacian = cv2.cvtColor(laplacian, cv2.COLOR_BGR2GRAY)
+
+    # Detect circles using Hough transform
+    circles = cv2.HoughCircles(combined, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
+    
+    
+    
     """
     #If circles are detected, draw a red circle around the largest one 
     if circles is not None:
@@ -39,7 +118,7 @@ while True:
     if circles is not None:
         circles = np.round(circles[0, :]).astype("int")
         for (x, y, r) in circles:
-            if (r > 10) & (y > y_starting_point):  # Ignore small circles and circles below the starting point
+            if r > 10:  # Ignore small circles
                 circle_key = (x, y, r)
 
                 # Check if circle is newly detected or already tracked
@@ -76,7 +155,6 @@ while True:
             if np.all(color_variance < color_threshold):
                 # Draw the circle if color is consistent
                 cv2.circle(frame, (x, y), r, circle_color, circle_thickness)
-                #print(y)
 
     #"""
     
