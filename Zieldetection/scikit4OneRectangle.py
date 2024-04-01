@@ -1,4 +1,7 @@
-#missglückter versuch die Intersections zu verbinden
+#findet ein rectangle -> zeichnet diese auf Basis der Schnittpunkte
+#also relativ gut, das Rechteck wird aber nur das Größte gezeichnet
+#wenn mehrere sind, kann dies zu Probleme führen
+#daher besser auf die Intersectionpunkte schauen
 
 import cv2
 import numpy as np
@@ -91,7 +94,7 @@ while True:
     # Finde die Peaks in der Hough-Transformierten
     peaks = hough_line_peaks(h, theta, d, min_distance = 100)
 
-    # Extrahiere die Linienparameter der Peaks
+        # Extract lines from peaks
     lines = []
     for _, angle, dist in zip(*peaks):
         a = np.cos(angle)
@@ -104,68 +107,35 @@ while True:
         y2 = int(y0 - 1000 * (a))
         lines.append((x1, y1, x2, y2))
 
-    """
-    # Extrahiere die Eckpunkte der Rechtecke aus den Linien
-    rectangles = []
-    for i in range(len(lines)):
-        for j in range(i + 1, len(lines)):
-            x1 = lines[i][0]
-            y1 = lines[i][1]
-            x2 = lines[i][2]
-            y2 = lines[i][3]
-            
-            x3 = lines[j][0]
-            y3 = lines[j][1]
-            x4 = lines[j][2]
-            y4 = lines[j][3]
-            
-            area = abs((x1 - x2) * (y3 - y4)) - abs((x3 - x4) * (y1 - y2))
-            
-            # Überprüfen, ob die Linien ein Rechteck bilden
-            if area < 1000:
-                rectangles.append((x1, y1, x2, y2, x3, y3, x4, y4))
-
-    """
-    valid_rectangle = None
-    #"""
-    # Filter rectangles based on consistency
-    valid_rectangle = None
-    for line1 in lines:
-        for line2 in lines:
-            if line1 == line2:
-                continue
+    # Find intersection points of all line pairs
+    intersection_points = []
+    for i, line1 in enumerate(lines):
+        for line2 in lines[i+1:]:
             intersection_point = find_intersection(line1, line2)
             if intersection_point is not None:
-                x1, y1, x2, y2 = line1
-                x3, y3, x4, y4 = line2
-                rectangle = (x1, y1, x2, y2, x3, y3, x4, y4)
-                if rectangle not in tracked_rectangles:
-                    tracked_rectangles.add(rectangle)
-                    consecutive_frames[rectangle] = 0  # Set consecutive frames count to 0
-                else:
-                    consecutive_frames[rectangle] += 1
-                    if consecutive_frames[rectangle] >= min_consecutive_frames:
-                        valid_rectangle = rectangle
-                        break
+                intersection_points.append(intersection_point)
     
-    # Draw the valid rectangle on the frame
-    if valid_rectangle is not None:
-        x1, y1, x2, y2, x3, y3, x4, y4 = valid_rectangle
-        intersection_points = []
-        for line1 in lines:
-            for line2 in lines:
-                if line1 == line2:
-                    continue
-                intersection_point = find_intersection(line1, line2)
-                if intersection_point is not None:
-                    intersection_points.append(intersection_point)
+    # Convert intersection points to NumPy array
+    intersection_points = np.array(intersection_points)
+
+    # Draw intersection points
+    for point in intersection_points:
+        cv2.circle(frame, (point[0], point[1]), 5, (0, 0, 255), -1)
+    
+    # Find the minimum and maximum coordinates to determine the bounding rectangle
+    if len(intersection_points) > 0:
+        # Filter intersection points outside the frame
+        intersection_points = intersection_points[(intersection_points[:, 0] >= 0) & (intersection_points[:, 0] < frame.shape[1]) &
+                                                  (intersection_points[:, 1] >= 0) & (intersection_points[:, 1] < frame.shape[0])]
         
-        # Draw lines to intersection points
-        for point in intersection_points:
-            cv2.line(frame, (x1, y1), point, (0, 255, 0), 2)
-            cv2.line(frame, (x2, y2), point, (0, 255, 0), 2)
-            cv2.line(frame, (x3, y3), point, (0, 255, 0), 2)
-            cv2.line(frame, (x4, y4), point, (0, 255, 0), 2)
+        if len(intersection_points) > 0:
+            min_x = np.min(intersection_points[:, 0])
+            max_x = np.max(intersection_points[:, 0])
+            min_y = np.min(intersection_points[:, 1])
+            max_y = np.max(intersection_points[:, 1])
+
+            # Draw the rectangle
+            cv2.rectangle(frame, (min_x, min_y), (max_x, max_y), (0, 255, 0), 2)
 
 
 
