@@ -100,8 +100,6 @@ while True:
     #laplacian = cv2.convertScaleAbs(laplacian)
     #laplacian = cv2.cvtColor(laplacian, cv2.COLOR_BGR2GRAY)
 
-    # Detect circles using Hough transform
-
     # Setting parameter values 
     t_lower = 50  # Lower Threshold 
     t_upper = 150  # Upper threshold 
