@@ -1,33 +1,6 @@
 import cv2
 import numpy as np
 
-def change_to_white(image, threshold):
-  copy = image
-  """
-  Changes pixels below a certain color threshold in BGR format to white (255, 255, 255).
-
-  Args:
-      image: The input image (assuming BGR format).
-      threshold: A list containing the lower bounds for each BGR channel (0-255).
-
-  Returns:
-      A new image with areas below the threshold converted to white.
-  """
-
-  # Define lower bound for dark colors (modify as needed)
-  lower = np.array(threshold, dtype="uint8")  # Ensure uint8 data type
-
-  # Create upper bound with all values set to 255 (white)
-  upper = np.array([200, 200, 200], dtype="uint8")  # Ensure uint8 data type
-
-  # Create a mask to identify pixels below the threshold
-  mask = cv2.inRange(copy, lower, upper)
-
-  # Set all pixels below the threshold to white
-  copy[mask > 0] = (255, 255, 255)
-
-  return copy
-
 # Load the video capture device (i.e., the webcam)
 cap = cv2.VideoCapture(0)
 
@@ -36,7 +9,7 @@ circle_color = (0, 0, 255)  # red color
 circle_thickness = 2
 
 # Define thresholds
-color_threshold = 50  # Maximum allowable difference in BGR values
+color_threshold = 15  # Maximum allowable difference in BGR values
 min_consecutive_frames = 6  # Minimum frames to consider a circle initially
 max_missed_frames = 0  # Maximum allowed missed frames before discarding a circle
 
@@ -44,70 +17,22 @@ max_missed_frames = 0  # Maximum allowed missed frames before discarding a circl
 consecutive_frames = {}  # Dictionary to store frame counts and missed frames
 tracked_circles = set()  # Set to store circles currently being tracked
 y_starting_point = cap.get(4)/3 # Starting point to filter circles in the top third of the image
-
-threshold = [50, 50, 50]
-
-
-# Define saturation adjustment factor (positive value increases saturation)
-saturation_factor = -1
-# Define brightness adjustment value (positive value increases brightness)
-brightness = 100
-
 while True:
     # Capture a frame from the webcam
     ret, frame = cap.read()
-    # Convert frame to HSV color space
-    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Split the channels
-    h, s, v = cv2.split(hsv_frame)
+    # Convert frame to grayscale for adaptive thresholding (temporary)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Adjust saturation
-    s = cv2.multiply(s, saturation_factor)
+    # Apply adaptive thresholding
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 51, 2)
 
-    # Merge the channels back
-    hsv_adjusted = cv2.merge((h, s, v))
+    # Apply Gaussian blur on the thresholded image
+    blurred = cv2.GaussianBlur(thresh, (5, 5), 0)
 
-    # Convert back to BGR for display
-    adjusted_frame = cv2.cvtColor(hsv_adjusted, cv2.COLOR_HSV2BGR)
-
-    # Increase brightness of the frame
-    adjusted_frame = cv2.convertScaleAbs(adjusted_frame, alpha=1.0, beta=brightness)
-
-    # Convert the frame to grayscale and apply Gaussian blur
-    gray = cv2.cvtColor(adjusted_frame, cv2.COLOR_BGR2GRAY)
-    cv2.imshow("Gray", gray)
-    #cv2.imshow("Replaced", change_to_white(frame, threshold))
-
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    """
-    #https://pyimagesearch.com/2021/05/12/image-gradients-with-opencv-sobel-and-scharr/
-    
-    # set the kernel size, depending on whether we are using the Sobel
-    # operator of the Scharr operator, then compute the gradients along
-    # the x and y axis, respectively
-    ksize = 3
-    gX = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=ksize)
-    gY = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=ksize)
-    # the gradient magnitude images are now of the floating point data
-    # type, so we need to take care to convert them back a to unsigned
-    # 8-bit integer representation so other OpenCV functions can operate
-    # on them and visualize them
-    gX = cv2.convertScaleAbs(gX)
-    gY = cv2.convertScaleAbs(gY)
-    # combine the gradient representations into a single image
-    combined = cv2.addWeighted(gX, 0.5, gY, 0.5, 0)
-    # show our output images
-    cv2.imshow("Sobel/Scharr X", gX)
-    cv2.imshow("Sobel/Scharr Y", gY)
-    cv2.imshow("Sobel/Scharr Combined", combined)
-
-    # Detect circles using Hough transform
-    circles = cv2.HoughCircles(combined, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
-    """
+    # Detect circles using Hough transform on the blurred thresholded image
     circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
-    #"""
+  
     """
     #If circles are detected, draw a red circle around the largest one 
     if circles is not None:
@@ -161,7 +86,7 @@ while True:
                 #print(y)
 
     #"""
-    
+    frame = thresh
     # Display the resulting frame
     cv2.imshow("Frame", frame)
 

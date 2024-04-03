@@ -1,32 +1,7 @@
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
 
-def change_to_white(image, threshold):
-  copy = image
-  """
-  Changes pixels below a certain color threshold in BGR format to white (255, 255, 255).
-
-  Args:
-      image: The input image (assuming BGR format).
-      threshold: A list containing the lower bounds for each BGR channel (0-255).
-
-  Returns:
-      A new image with areas below the threshold converted to white.
-  """
-
-  # Define lower bound for dark colors (modify as needed)
-  lower = np.array(threshold, dtype="uint8")  # Ensure uint8 data type
-
-  # Create upper bound with all values set to 255 (white)
-  upper = np.array([200, 200, 200], dtype="uint8")  # Ensure uint8 data type
-
-  # Create a mask to identify pixels below the threshold
-  mask = cv2.inRange(copy, lower, upper)
-
-  # Set all pixels below the threshold to white
-  copy[mask > 0] = (255, 255, 255)
-
-  return copy
 
 # Load the video capture device (i.e., the webcam)
 cap = cv2.VideoCapture(0)
@@ -36,54 +11,69 @@ circle_color = (0, 0, 255)  # red color
 circle_thickness = 2
 
 # Define thresholds
-color_threshold = 50  # Maximum allowable difference in BGR values
+color_threshold = 15  # Maximum allowable difference in BGR values
 min_consecutive_frames = 6  # Minimum frames to consider a circle initially
 max_missed_frames = 0  # Maximum allowed missed frames before discarding a circle
 
 # Initialize variables for tracking
 consecutive_frames = {}  # Dictionary to store frame counts and missed frames
 tracked_circles = set()  # Set to store circles currently being tracked
-y_starting_point = cap.get(4)/3 # Starting point to filter circles in the top third of the image
-
-threshold = [50, 50, 50]
-
-
-# Define saturation adjustment factor (positive value increases saturation)
-saturation_factor = -1
-# Define brightness adjustment value (positive value increases brightness)
-brightness = 100
 
 while True:
     # Capture a frame from the webcam
     ret, frame = cap.read()
-    # Convert frame to HSV color space
-    hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-    # Split the channels
-    h, s, v = cv2.split(hsv_frame)
-
-    # Adjust saturation
-    s = cv2.multiply(s, saturation_factor)
-
-    # Merge the channels back
-    hsv_adjusted = cv2.merge((h, s, v))
-
-    # Convert back to BGR for display
-    adjusted_frame = cv2.cvtColor(hsv_adjusted, cv2.COLOR_HSV2BGR)
-
-    # Increase brightness of the frame
-    adjusted_frame = cv2.convertScaleAbs(adjusted_frame, alpha=1.0, beta=brightness)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    """
+    
+    
 
     # Convert the frame to grayscale and apply Gaussian blur
-    gray = cv2.cvtColor(adjusted_frame, cv2.COLOR_BGR2GRAY)
-    cv2.imshow("Gray", gray)
-    #cv2.imshow("Replaced", change_to_white(frame, threshold))
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Detect circles using Hough transform
+    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
+    """
+    #https://docs.opencv.org/4.x/d5/d0f/tutorial_py_gradients.html
+
+    # Convert the frame to grayscale and apply Gaussian blur
+    #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    """
+    plt.subplot(2,2,1),plt.imshow(gray,cmap = 'gray')
+    plt.title('Gray'), plt.xticks([]), plt.yticks([])
 
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    """
-    #https://pyimagesearch.com/2021/05/12/image-gradients-with-opencv-sobel-and-scharr/
+    plt.subplot(2,2,2),plt.imshow(blurred,cmap = 'gray')
+    plt.title('Blurred'), plt.xticks([]), plt.yticks([])
+
+    laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
+
+    plt.subplot(2,2,3),plt.imshow(laplacian,cmap = 'gray')
+    plt.title('Laplacian also Blurred'), plt.xticks([]), plt.yticks([])
     
+
+    img = cv2.imread('BallDetection/balltemplate.jpg')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    assert img is not None, "file could not be read, check with os.path.exists()"
+    
+    laplacian = cv2.Laplacian(img,cv2.CV_64F)
+    sobelx = cv2.Sobel(img,cv2.CV_64F,1,0,ksize=5)
+    sobely = cv2.Sobel(img,cv2.CV_64F,0,1,ksize=5)
+    
+    plt.subplot(2,2,1),plt.imshow(img,cmap = 'gray')
+    plt.title('Original'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2,2,2),plt.imshow(laplacian,cmap = 'gray')
+    plt.title('Laplacian'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2,2,3),plt.imshow(sobelx,cmap = 'gray')
+    plt.title('Sobel X'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2,2,4),plt.imshow(sobely,cmap = 'gray')
+    plt.title('Sobel Y'), plt.xticks([]), plt.yticks([])
+
+    """
+
+    #https://pyimagesearch.com/2021/05/12/image-gradients-with-opencv-sobel-and-scharr/
+
     # set the kernel size, depending on whether we are using the Sobel
     # operator of the Scharr operator, then compute the gradients along
     # the x and y axis, respectively
@@ -102,12 +92,19 @@ while True:
     cv2.imshow("Sobel/Scharr X", gX)
     cv2.imshow("Sobel/Scharr Y", gY)
     cv2.imshow("Sobel/Scharr Combined", combined)
+    #cv2.waitKey(0)
+    plt.show()
+
+    
+    # convert back to uint8 
+    #laplacian = cv2.convertScaleAbs(laplacian)
+    #laplacian = cv2.cvtColor(laplacian, cv2.COLOR_BGR2GRAY)
 
     # Detect circles using Hough transform
     circles = cv2.HoughCircles(combined, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
-    """
-    circles = cv2.HoughCircles(blurred, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=0, maxRadius=75)
-    #"""
+    
+    
+    
     """
     #If circles are detected, draw a red circle around the largest one 
     if circles is not None:
@@ -121,7 +118,7 @@ while True:
     if circles is not None:
         circles = np.round(circles[0, :]).astype("int")
         for (x, y, r) in circles:
-            if (r > 10) & (y > y_starting_point):  # Ignore small circles and circles below the starting point
+            if r > 10:  # Ignore small circles
                 circle_key = (x, y, r)
 
                 # Check if circle is newly detected or already tracked
@@ -158,7 +155,6 @@ while True:
             if np.all(color_variance < color_threshold):
                 # Draw the circle if color is consistent
                 cv2.circle(frame, (x, y), r, circle_color, circle_thickness)
-                #print(y)
 
     #"""
     
