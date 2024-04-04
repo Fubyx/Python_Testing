@@ -1,8 +1,9 @@
 import picamera2
 import requests  # Import requests library
+import cv2
 
 # Server details (replace with your server's IP and port)
-SERVER_IP = "192.168.1.100"
+SERVER_IP = "192.168.236.229"
 SERVER_PORT = 8080
 SERVER_URL = f"http://{SERVER_IP}:{SERVER_PORT}/receive_frame"
 
