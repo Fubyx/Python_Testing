@@ -9,7 +9,7 @@ SERVER_URL = f"http://{SERVER_IP}:{SERVER_PORT}/receive_frame"
 
 def capture_and_send_frame():
     with picamera2.Picamera2() as camera:
-        camera.start_preview()
+        camera.start()
         while True:
             try:
                 im = camera.capture_array()
@@ -19,7 +19,7 @@ def capture_and_send_frame():
                 print(f"Frame sent successfully. Status code: {response.status_code}")
             except Exception as e:
                 print(f"Error capturing or sending frame: {e}")
-                camera.close()  # Close camera on error
+                camera.stop()  # Close camera on error
                 break
 
 if __name__ == "__main__":
