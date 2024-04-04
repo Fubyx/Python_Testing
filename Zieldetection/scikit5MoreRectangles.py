@@ -72,6 +72,43 @@ while True:
         y2 = int(y0 - 1000 * (a))
         lines.append((x1, y1, x2, y2))
 
+
+    #"""Test
+        
+# Extrahiere die Eckpunkte der Rechtecke aus den Linien
+    rectangles = []
+    for i in range(len(lines)):
+        for j in range(i + 1, len(lines)):
+            x1 = lines[i][0]
+            y1 = lines[i][1]
+            x2 = lines[i][2]
+            y2 = lines[i][3]
+            
+            x3 = lines[j][0]
+            y3 = lines[j][1]
+            x4 = lines[j][2]
+            y4 = lines[j][3]
+            
+            area = abs((x1 - x2) * (y3 - y4)) - abs((x3 - x4) * (y1 - y2))
+            
+            # Überprüfen, ob die Linien ein Rechteck bilden
+            if area < 1000:
+                rectangles.append((x1, y1, x2, y2, x3, y3, x4, y4))
+        # Zeichnen Alle Rechtecke auf 
+            
+    for rectangle in rectangles:
+    
+        print("Consistent!!!!!!!!!!!!!!!!!")
+        #paint rectangle
+        
+        x1, y1, x2, y2, x3, y3, x4, y4 = rectangle
+        cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv2.line(frame, (x2, y2), (x3, y3), (0, 255, 0), 2)
+        cv2.line(frame, (x3, y3), (x4, y4), (0, 255, 0), 2)
+        cv2.line(frame, (x4, y4), (x1, y1), (0, 255, 0), 2)
+        #for i in range(0, len(rectangle), 2):
+        #    cv2.line(frame, (rectangle[i], rectangle[i+1]), (rectangle[(i+2)%8], rectangle[(i+3)%8]), (0, 255, 0), 2)
+    #"""
     # Find intersection points of all line pairs
     intersection_points = []
     for i, line1 in enumerate(lines):
@@ -88,9 +125,11 @@ while True:
     for point in intersection_points:
         cv2.circle(frame, (point[0], point[1]), 5, (0, 0, 255), -1)
     # Draw lines between each pair of intersection points
+    """    
     for i in range(len(intersection_points) - 1):
         cv2.line(frame, (intersection_points[i][0], intersection_points[i][1]), 
                  (intersection_points[i+1][0], intersection_points[i+1][1]), (0, 255, 0), 2)
+                 """
 
 
     # Display the frame
