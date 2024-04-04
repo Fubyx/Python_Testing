@@ -4,6 +4,7 @@ import cv2
 import sys
 import numpy
 import RPi.GPIO as GPIO   
+import time
 
 from RpiMotorLib import RpiMotorLib
 
@@ -20,6 +21,10 @@ motor2EnPin = 22
 
 doorGpioPins = [6, 13, 19, 26]
 motorType = RpiMotorLib.BYJMotor("MyMotorOne", "28BYJ")
+
+doorOpen = False
+doorTimer = 0
+
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(motor1In1Pin, GPIO.OUT)
@@ -60,17 +65,19 @@ def vid():
 
 @app.route('/controls', methods=['POST'])
 def controls():
+    global doorTimer
+    global doorOpen
     data = request.get_json(True)
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     #print(data)
     print("verticalSpeed: " + str(verticalSpeed))
     print("rotationalSpeed: " + str(rotationalSpeed))
-    print("forceLights: " + str(data["forceLights"]))
-    print("openDoor: " + str(data["openDoor"]))
+    print("lightsState: " + str(data["lightsState"]))
+    print("doorState: " + str(data["doorState"]))
     
-    leftSpeed = (3 * verticalSpeed + rotationalSpeed) / 3
-    rightSpeed = (3 *verticalSpeed - rotationalSpeed) / 3
+    leftSpeed = verticalSpeed + rotationalSpeed
+    rightSpeed = verticalSpeed - rotationalSpeed
     if leftSpeed > 100:
         leftSpeed = 100
     if leftSpeed < -100:
@@ -104,11 +111,19 @@ def controls():
         
     motor1PWM.ChangeDutyCycle(leftSpeed)
     motor2PWM.ChangeDutyCycle(rightSpeed)
+    if time.time() - doorTimer > 1000:
+        if doorOpen and not data["doorState"]:
+            doorTimer = time.time()
+            motorType.motor_run(doorGpioPins,0.005,128, False, False,"half", 0.01)
+        elif not doorOpen and data["doorState"]:
+            doorTimer = time.time()
+            motorType.motor_run(doorGpioPins,0.005,128, True, False,"half", 0.01)
 
     return Response("success")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000, debug=True, threaded=True)
+
 
 
 

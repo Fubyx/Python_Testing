@@ -6,21 +6,42 @@
         Controls
     </title>
     <meta name="viewport" content="user-scalable=no">
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body style="position: fixed; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif ;
-color:rgb(128, 128, 128);
-font-size: xx-large;">
-    <h1 style="text-align:center">Controls </h1>
-    <p style="width: 100vw; display: flex; justify-content: space-around;">
-        <span>X: <span id="x_coordinate"> </span></span>
-        <span>Y: <span id="y_coordinate"> </span></span>
-        <span>Speed: <span id="speed"> </span> %</span>
-        <span>Angle: <span id="angle"> </span></span>
-    </p>
+<body>
+    <h1>Controls </h1>
+    <div class="valueList">
+        <div>X: <span id="x_coordinate"> </span></div>
+        <div>Y: <span id="y_coordinate"> </span></div>
+        <div>Speed: <span id="speed"> </span> %</div>
+        <div>Angle: <span id="angle"> </span></div>
+    </div>
+    <div class="flex">
+        <label class="switchBox">
+            Autopilot:
+            <span class="switch">
+                <input type="checkbox" id="autopilotState">
+                <span class="slider"></span>
+            </span>
+        </label>
+        <div class="switchBox">
+            Lights:
+            <label class="switch">
+                <input type="checkbox" id="lightsState">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="switchBox">
+            Door:
+            <label class="switch">
+                <input type="checkbox" id="doorState">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+      
     <canvas id="canvas" name="controls"></canvas>
-
-
     <script>
 
         var canvas, ctx;
@@ -65,16 +86,16 @@ font-size: xx-large;">
 
             ctx.beginPath();
             ctx.arc(x_orig, y_orig, radius + 20, 0, Math.PI * 2, true);
-            ctx.fillStyle = '#ECE5E5';
+            ctx.fillStyle = '#E5E5EC';
             ctx.fill();
         }
 
         function joystick(width, height) {
             ctx.beginPath();
             ctx.arc(width, height, radius, 0, Math.PI * 2, true);
-            ctx.fillStyle = '#F08080';
+            ctx.fillStyle = '#46e8ac';
             ctx.fill();
-            ctx.strokeStyle = '#F6ABAB';
+            ctx.strokeStyle = '#17ad76';
             ctx.lineWidth = 8;
             ctx.stroke();
         }
@@ -161,7 +182,7 @@ font-size: xx-large;">
 
 
                 document.getElementById("x_coordinate").innerText = x_relative;
-                document.getElementById("y_coordinate").innerText = y_relative;
+                document.getElementById("y_coordinate").innerText = -y_relative;
                 document.getElementById("speed").innerText = speed;
                 document.getElementById("angle").innerText = angle_in_degrees;
             }
@@ -170,14 +191,19 @@ font-size: xx-large;">
 
 
         function sendData() {
-            const response = fetch('http://192.168.236.30:5000/controls', {
+            let x_direction = 1;
+            if (x_relative < 0) {
+                x_direction = -1;
+            }
+            const response = fetch('http://192.168.200.30:5000/controls', {
                 method: 'POST',
-                body: '{"verticalSpeed" :' + y_relative + 
-                ', "rotationalSpeed" :' + x_relative + 
-                ', "forceLights" : ' + false + 
-                ', "openDoor" :' +  true + 
-                
-                '}', 
+                body: '{"verticalSpeed" :' + -y_relative +
+                    ', "rotationalSpeed" :' + x_direction * x_relative ^ 2 / 100 +
+                    ', "forceLights" : ' + document.getElementById("lightsState").checked +
+                    ', "openDoor" :' + document.getElementById("doorState").checked +
+                    ', "autopilot" :' + document.getElementById("autopilotState").checked +
+
+                    '}',
                 headers: {
                     'Content-Type': 'text/plain'
                 }
