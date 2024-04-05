@@ -58,7 +58,7 @@ class Controls:
 
 
     def moveDoor(self):
-        if time.time() - self.doorTimer > 1000:
+        if time.time() - self.doorTimer > 5:
             if self.doorOpen:
                 self.doorTimer = time.time()
                 self.MOTOR_TYPE.motor_run(self.DOOR_GPIO_PINS,0.005,128, False, False,"half", 0.01)
