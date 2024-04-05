@@ -19,6 +19,8 @@ motor2In1Pin = 17
 motor2In2Pin = 27
 motor2EnPin = 22
 
+lightsPin = 16
+
 doorGpioPins = [6, 13, 19, 26]
 motorType = RpiMotorLib.BYJMotor("MyMotorOne", "28BYJ")
 
@@ -33,6 +35,7 @@ GPIO.setup(motor1EnPin, GPIO.OUT)
 GPIO.setup(motor2In1Pin, GPIO.OUT)
 GPIO.setup(motor2In2Pin, GPIO.OUT)
 GPIO.setup(motor2EnPin, GPIO.OUT)
+GPIO.setup(lightsPin, GPIO.OUT)
 
 GPIO.output(motor1In1Pin,GPIO.LOW)
 GPIO.output(motor1In2Pin,GPIO.LOW)
@@ -49,6 +52,11 @@ def controls():
     global doorTimer
     global doorOpen
     data = request.get_json(True)
+    if data["lightsState"]:
+        GPIO.output(lightsPin, GPIO.HIGH)
+    else:
+        GPIO.output(lightsPin, GPIO.LOW)
+
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     #print(data)
