@@ -43,26 +43,7 @@ motor1PWM=GPIO.PWM(motor1EnPin, 1000)
 motor1PWM.start(0)
 motor2PWM=GPIO.PWM(motor2EnPin, 1000)
 motor2PWM.start(0)
-
 app = Flask(__name__)
-
-def get_frame():
-    camera_port=0
-    camera=cv2.VideoCapture(camera_port) #this makes a web cam object
-
-    while True:
-        retval, im = camera.read()
-        imgencode=cv2.imencode('.jpg',im)[1]
-        stringData=imgencode.tostring()
-        yield (b'--frame\r\n'
-            b'Content-Type: text/plain\r\n\r\n'+stringData+b'\r\n')
-
-    del(camera)
-
-@app.route('/vid')
-def vid():
-     return Response(get_frame(),mimetype='multipart/x-mixed-replace; boundary=frame')
-
 @app.route('/controls', methods=['POST'])
 def controls():
     global doorTimer
@@ -71,11 +52,10 @@ def controls():
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     #print(data)
-    print("verticalSpeed: " + str(verticalSpeed))
-    print("rotationalSpeed: " + str(rotationalSpeed))
-    print("lightsState: " + str(data["lightsState"]))
-    print("doorState: " + str(data["doorState"]))
-    
+    #print("verticalSpeed: " + str(verticalSpeed))
+    #print("rotationalSpeed: " + str(rotationalSpeed))
+    #print("lightsState: " + str(data["lightsState"]))
+    #print("doorState: " + str(data["doorState"]))
     leftSpeed = verticalSpeed + rotationalSpeed
     rightSpeed = verticalSpeed - rotationalSpeed
     if leftSpeed > 100:
@@ -86,7 +66,6 @@ def controls():
         rightSpeed = 100
     if rightSpeed < -100:
         rightSpeed = -100
-        
     if leftSpeed > 0:
         GPIO.output(motor1In1Pin, GPIO.HIGH)
         GPIO.output(motor1In2Pin, GPIO.LOW)
@@ -97,7 +76,6 @@ def controls():
     else:
         GPIO.output(motor1In1Pin, GPIO.LOW)
         GPIO.output(motor1In2Pin, GPIO.LOW)
-
     if rightSpeed > 0:
         GPIO.output(motor2In1Pin, GPIO.HIGH)
         GPIO.output(motor2In2Pin, GPIO.LOW)
@@ -108,22 +86,17 @@ def controls():
     else:
         GPIO.output(motor2In1Pin, GPIO.LOW)
         GPIO.output(motor2In2Pin, GPIO.LOW)
-        
     motor1PWM.ChangeDutyCycle(leftSpeed)
     motor2PWM.ChangeDutyCycle(rightSpeed)
-    if time.time() - doorTimer > 1000:
+    if time.time() - doorTimer > 5:
         if doorOpen and not data["doorState"]:
+            doorOpen = not doorOpen
             doorTimer = time.time()
-            motorType.motor_run(doorGpioPins,0.005,128, False, False,"half", 0.01)
+            motorType.motor_run(doorGpioPins,0.003,128, False, False,"half", 0.01)
         elif not doorOpen and data["doorState"]:
+            doorOpen = not doorOpen
             doorTimer = time.time()
-            motorType.motor_run(doorGpioPins,0.005,128, True, False,"half", 0.01)
-
+            motorType.motor_run(doorGpioPins,0.003,128, True, False,"half", 0.01)
     return Response("success")
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=5000, debug=True, threaded=True)
-
-
-
-
