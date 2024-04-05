@@ -46,23 +46,6 @@ motor2PWM.start(0)
 
 app = Flask(__name__)
 
-def get_frame():
-    camera_port=0
-    camera=cv2.VideoCapture(camera_port) #this makes a web cam object
-
-    while True:
-        retval, im = camera.read()
-        imgencode=cv2.imencode('.jpg',im)[1]
-        stringData=imgencode.tostring()
-        yield (b'--frame\r\n'
-            b'Content-Type: text/plain\r\n\r\n'+stringData+b'\r\n')
-
-    del(camera)
-
-@app.route('/vid')
-def vid():
-     return Response(get_frame(),mimetype='multipart/x-mixed-replace; boundary=frame')
-
 @app.route('/controls', methods=['POST'])
 def controls():
     global doorTimer
