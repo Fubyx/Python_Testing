@@ -40,7 +40,7 @@
             </label>
         </div>
     </div>
-      
+
     <canvas id="canvas" name="controls"></canvas>
     <script>
 
@@ -191,16 +191,23 @@
 
 
         function sendData() {
-            let x_direction = 1;
+            let x_direction = -1;
             if (x_relative < 0) {
-                x_direction = -1;
+                x_direction = 1;
             }
+            console.clear();
+            console.log('{"verticalSpeed" :' + (-y_relative) +
+                ', "rotationalSpeed" :' + (x_direction * x_relative * x_relative / 100) +
+                ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                ', "doorState" :' + document.getElementById("doorState").checked +
+                ', "autopilot" :' + document.getElementById("autopilotState").checked +
+                '}');
             const response = fetch('http://192.168.200.30:5000/controls', {
                 method: 'POST',
-                body: '{"verticalSpeed" :' + -y_relative +
-                    ', "rotationalSpeed" :' + x_direction * x_relative ^ 2 / 100 +
-                    ', "forceLights" : ' + document.getElementById("lightsState").checked +
-                    ', "openDoor" :' + document.getElementById("doorState").checked +
+                body: '{"verticalSpeed" :' + (-y_relative) +
+                    ', "rotationalSpeed" :' + (x_direction * x_relative * x_relative / 100) +
+                    ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                    ', "doorState" :' + document.getElementById("doorState").checked +
                     ', "autopilot" :' + document.getElementById("autopilotState").checked +
 
                     '}',
