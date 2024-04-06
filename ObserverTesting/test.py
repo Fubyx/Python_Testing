@@ -1,3 +1,5 @@
+#https://refactoring.guru/design-patterns/observer/python/example
+#https://www.geeksforgeeks.org/observer-method-python-design-patterns/
 from __future__ import annotations
 from abc import ABC, abstractmethod
 import threading
