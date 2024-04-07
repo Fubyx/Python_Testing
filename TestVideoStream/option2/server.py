@@ -47,10 +47,7 @@ motor1PWM.start(0)
 motor2PWM=GPIO.PWM(motor2EnPin, 1000)
 motor2PWM.start(0)
 app = Flask(__name__)
-<<<<<<< HEAD
 
-=======
->>>>>>> dc56d26f90403564eea5ecac4a070493812bb5cd
 @app.route('/controls', methods=['POST'])
 def controls():
     global doorTimer
