@@ -22,7 +22,7 @@ def controls():
 
     control.changeValues(verticalSpeed, rotationalSpeed, lightsState, doorState)
     
-    return Response("success")
+    return Response("success") # return things such as data from distance sensors
 
 
 if __name__ == '__main__':
