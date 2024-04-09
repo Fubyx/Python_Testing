@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, Response
 import cv2
 import threading
 import numpy as np
+import requests
 
 app = Flask(__name__)
 frame = None  # Global variable to store the latest frame
@@ -35,6 +36,31 @@ def img():
                     b'Content-Type: text/plain\r\n\r\n'+
                     image_data+b'\r\n',
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/test', methods=['POST'])
+def test():
+    print('yes')
+    return Response("success") # return things such as data from distance sensors
+
+@app.route('/controls', methods=['POST'])
+def controls():
+    data = request.get_json(True)
+    verticalSpeed = data["verticalSpeed"]
+    rotationalSpeed = data["rotationalSpeed"]
+    lightsState = data["lightsState"]
+    doorState = data["doorState"]
+    autopilot = data["autopilot"]
+
+    PI_URL = "http://192.168.200.30:5000/controls"
+    response = requests.post(PI_URL, files={'verticalSpeed': str(verticalSpeed), 'rotationalSpeed' : str(rotationalSpeed), 'lightsState':str(lightsState), 'doorState':str(doorState)})
+    try:
+        response.raise_for_status()  # Raise exception on non-200 status codes
+    except:
+        print("sending failed")
+    print(f"sent successfully. Status code: {response.status_code}")
+    
+    return Response("success") # return things such as data from distance sensors
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
