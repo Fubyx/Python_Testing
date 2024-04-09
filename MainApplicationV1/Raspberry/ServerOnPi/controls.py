@@ -15,7 +15,7 @@ class Controls:
     DOOR_GPIO_PINS = [6, 13, 19, 26]
     MOTOR_TYPE = RpiMotorLib.BYJMotor("MyMotorOne", "28BYJ")
 
-    LIGHT_PIN = None
+    LIGHT_PIN = 16
 
     def __init__(self) -> None:
         # Variables used for doorhandling
@@ -24,8 +24,6 @@ class Controls:
         self.leftSpeed = 0
         self.rightSpeed = 0
         self.lightsState = 2 # 0 = forced off, 1 = forced on, 2 = auto
-        self.motor1PWM=GPIO.PWM(self.MOTOR1EN_PIN, 1000)
-        self.motor2PWM=GPIO.PWM(self.MOTOR2EN_PIN, 1000)
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.MOTOR1EN_PIN, GPIO.OUT)
@@ -33,10 +31,12 @@ class Controls:
         GPIO.setup(self.MOTOR1IN2PIN, GPIO.OUT)
         GPIO.setup(self.MOTOR2EN_PIN, GPIO.OUT)
         GPIO.setup(self.MOTOR2IN1PIN, GPIO.OUT)
-        GPIO.setup(self.MOTOR2EN_PIN, GPIO.OUT)
+        GPIO.setup(self.MOTOR2IN2PIN, GPIO.OUT)
 
         GPIO.setup(self.LIGHT_PIN, GPIO.OUT)
 
+        self.motor1PWM=GPIO.PWM(self.MOTOR1EN_PIN, 1000)
+        self.motor2PWM=GPIO.PWM(self.MOTOR2EN_PIN, 1000)
 
         GPIO.output(self.MOTOR1IN1PIN, GPIO.LOW)
         GPIO.output(self.MOTOR1IN2PIN, GPIO.LOW)
