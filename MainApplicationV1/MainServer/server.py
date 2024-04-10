@@ -27,8 +27,8 @@ def receive_frame():
         return jsonify({'error': 'Missing image data'}), 400
 
     image_data = request.files['image'].read()
-    frame = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)  # Update global frame
-
+    frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    
     return jsonify({'message': 'Frame received successfully'}), 200
 
 @app.route('/img')
