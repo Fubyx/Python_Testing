@@ -44,6 +44,7 @@ class Controls:
         GPIO.output(self.MOTOR2IN2PIN, GPIO.LOW)
 
         GPIO.output(self.LIGHT_PIN, GPIO.LOW)
+        self.start()
     
     def changeValues(self, verticalSpeed, rotationalSpeed, lightsState, doorState):
         if(self.lightsState != lightsState):
@@ -51,29 +52,29 @@ class Controls:
 
         if(self.doorOpen != doorState):
             self.moveDoor()
-        leftSpeed = verticalSpeed + rotationalSpeed
-        rightSpeed = verticalSpeed - rotationalSpeed
-        if leftSpeed > 100:
-            leftSpeed = 100
-        if leftSpeed < -100:
-            leftSpeed = -100
-        if rightSpeed > 100:
-            rightSpeed = 100
-        if rightSpeed < -100:
-            rightSpeed = -100
+        self.leftspeed = verticalSpeed + rotationalSpeed
+        self.rightSpeed = verticalSpeed - rotationalSpeed
+        if self.leftspeed > 100:
+            self.leftspeed = 100
+        if self.leftspeed < -100:
+            self.leftspeed = -100
+        if self.rightSpeed > 100:
+            self.rightSpeed = 100
+        if self.rightSpeed < -100:
+            self.rightSpeed = -100
             
-        outLeft1 = GPIO.HIGH if leftSpeed > 0 else GPIO.LOW
-        outLeft2 = GPIO.HIGH if leftSpeed < 0 else GPIO.LOW
+        outLeft1 = GPIO.HIGH if self.leftspeed > 0 else GPIO.LOW
+        outLeft2 = GPIO.HIGH if self.leftspeed < 0 else GPIO.LOW
         GPIO.output(self.MOTOR1IN1PIN, outLeft1)
         GPIO.output(self.MOTOR1IN2PIN, outLeft2)
         
-        outRight1 = GPIO.HIGH if rightSpeed > 0 else GPIO.LOW
-        outRight2 = GPIO.HIGH if rightSpeed < 0 else GPIO.LOW
+        outRight1 = GPIO.HIGH if self.rightSpeed > 0 else GPIO.LOW
+        outRight2 = GPIO.HIGH if self.rightSpeed < 0 else GPIO.LOW
         GPIO.output(self.MOTOR2IN1PIN, outRight1)
         GPIO.output(self.MOTOR2IN2PIN, outRight2)
 
-        self.motor1PWM.ChangeDutyCycle(abs(leftSpeed))
-        self.motor2PWM.ChangeDutyCycle(abs(rightSpeed))
+        self.motor1PWM.ChangeDutyCycle(abs(self.leftspeed))
+        self.motor2PWM.ChangeDutyCycle(abs(self.rightSpeed))
 
     def changeLighting(self, newState):
         self.lightsState = newState
