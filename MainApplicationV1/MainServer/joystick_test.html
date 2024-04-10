@@ -205,9 +205,11 @@
 
 
         function switchVisibility() {
-            document.getElementsByClassName("ignoreWhenAuto")[0].array.forEach(element => {
-                element
-            });
+            let state = document.getElementById("autopilotState").checked;
+            let items = document.getElementsByClassName("ignoreWhenAuto");
+            for (let i = 0; i < items.length; i++) {
+                items[i].style.display = (state) ? 'none' : 'block';
+            }
         }
 
 
