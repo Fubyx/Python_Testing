@@ -14,7 +14,7 @@
     <div class="flex">
         <img id="camImage" src="http://192.168.200.51:8080/img">
 
-        <div class="valueList">
+        <div class="valueList ignoreWhenAuto">
             <div>X: <span id="x_coordinate"> </span></div>
             <div>Y: <span id="y_coordinate"> </span></div>
             <div>Speed: <span id="speed"> </span> %</div>
@@ -24,27 +24,27 @@
             <label class="switchBox">
                 Autopilot:
                 <span class="switch">
-                    <input type="checkbox" id="autopilotState">
+                    <input type="checkbox" id="autopilotState" onclick="sendData();switchVisibility()">
                     <span class="slider"></span>
                 </span>
             </label>
-            <div class="switchBox">
+            <div class="switchBox ignoreWhenAuto">
                 Lights:
                 <label class="switch">
-                    <input type="checkbox" id="lightsState">
+                    <input type="checkbox" id="lightsState" onclick="sendData()">
                     <span class="slider"></span>
                 </label>
             </div>
-            <div class="switchBox">
+            <div class="switchBox ignoreWhenAuto">
                 Door:
                 <label class="switch">
-                    <input type="checkbox" id="doorState">
+                    <input type="checkbox" id="doorState" onclick="sendData()">
                     <span class="slider"></span>
                 </label>
             </div>
         </div>
 
-        <canvas id="canvas" name="controls"></canvas>
+        <canvas id="canvas ignoreWhenAuto" name="controls"></canvas>
     </div>
     <script>
         let imgSrc = "http://192.168.200.51:8080/img";
@@ -146,7 +146,7 @@
             x_relative = 0;
             y_relative = 0;
 
-            sendData();
+            setTimeout(sendData, 10);
 
             document.getElementById("x_coordinate").innerText = 0;
             document.getElementById("y_coordinate").innerText = 0;
@@ -154,6 +154,7 @@
             document.getElementById("angle").innerText = 0;
         }
         let sendTimeout = 0;
+        let prev_x_relative, prev_y_relative
         function Draw(event) {
 
             if (paint) {
@@ -189,10 +190,11 @@
                 x_relative = Math.round(100 * (x - x_orig) / radius);
                 y_relative = Math.round(100 * (y - y_orig) / radius);
 
-                if (Date.now() - sendTimeout > 100) {
+                if (Date.now() - sendTimeout > 100 && (prev_x_relative != x_relative || prev_y_relative != y_relative)) {
                     sendTimeout = Date.now();
                     sendData();
-
+                    prev_x_relative = x_relative;
+                    prev_y_relative = y_relative;
                     document.getElementById("x_coordinate").innerText = x_relative;
                     document.getElementById("y_coordinate").innerText = -y_relative;
                     document.getElementById("speed").innerText = speed;
@@ -201,6 +203,12 @@
             }
         }
 
+
+        function switchVisibility() {
+            document.getElementsByClassName("ignoreWhenAuto")[0].array.forEach(element => {
+                element
+            });
+        }
 
 
         function sendData() {
