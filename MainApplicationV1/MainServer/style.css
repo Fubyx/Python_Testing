@@ -1,21 +1,26 @@
 body {
-    position: fixed;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     font-family: 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
     color: rgb(128, 128, 128);
     font-size: xx-large;
 }
-
+img {
+    width: 90vw;
+    max-width: 50vh;
+    border-radius: 2vw;
+    
+}
 h1 {
     text-align: center
 }
 
 .flex {
-    width: 240px;
-    float: left;
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
 }
 
 .switchBox {
