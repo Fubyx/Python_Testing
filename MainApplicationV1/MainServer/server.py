@@ -9,6 +9,45 @@ app = Flask(__name__)
 frame = None  # Global variable to store the latest frame
 image_data = None
 
+# Funktion zur Konturerkennung und Markierung mit Rechtecken
+def detect_objects(frame, min_area=500):
+    # Konvertiere das Bild in Graustufen
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Wende den Kantendetektor an
+    edges = cv2.Canny(gray, 50, 150)
+
+    cv2.imshow("Canny", edges)
+    
+    # Finde Konturen im Bild
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Durchlaufe alle gefundenen Konturen
+    for contour in contours:
+        # Berechne das umgebende Rechteck um die Kontur
+        x, y, w, h = cv2.boundingRect(contour)
+        
+        # Überprüfe, ob das Rechteck die Mindestgröße hat
+        if w * h < min_area:
+            continue
+        
+        # Überprüfe, ob das Rechteck von einem anderen Rechteck umgeben ist
+        surrounded = False
+        for other_contour in contours:
+            if other_contour is not contour:
+                other_x, other_y, other_w, other_h = cv2.boundingRect(other_contour)
+                if x > other_x and y > other_y and x + w < other_x + other_w and y + h < other_y + other_h:
+                    surrounded = True
+                    break
+        
+        if surrounded:
+            continue
+        
+        # Zeichne ein Rechteck um die Kontur
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    
+    return frame
+
 def display_frame():
     global frame
     while True:
@@ -28,6 +67,7 @@ def receive_frame():
 
     temp_data = request.files['image'].read()
     frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(temp_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    frame = detect_objects(frame)
     image_data = cv2.imencode(".jpg", frame)[1].tobytes()
 
     return jsonify({'message': 'Frame received successfully'}), 200

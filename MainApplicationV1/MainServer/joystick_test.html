@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <canvas id="canvas ignoreWhenAuto" name="controls"></canvas>
+        <canvas id="canvas" class="ignoreWhenAuto" name="controls"></canvas>
     </div>
     <script>
         let imgSrc = "http://192.168.200.51:8080/img";
@@ -208,7 +208,7 @@
             let state = document.getElementById("autopilotState").checked;
             let items = document.getElementsByClassName("ignoreWhenAuto");
             for (let i = 0; i < items.length; i++) {
-                items[i].style.visibility = (state) ? 'visible' : 'hidden';
+                items[i].style.visibility = (state) ? 'hidden' : 'visible';
             }
         }
 
