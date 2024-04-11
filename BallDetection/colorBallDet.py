@@ -1,5 +1,5 @@
 
-#Farbe herausfiltern und darin die Circles erkennen
+#Farbe herausfiltern und darin die Circles erkennen mit HoughConturen
 
 import cv2
 import numpy as np
@@ -74,11 +74,30 @@ def main():
         return
     
     # Wähle die Farbgrenzen für den zu erkennenden Ball
-    lower_color = np.array([100, 50, 50])  # Niedrige Grenzwerte für die Farbe (HSV)
-    upper_color = np.array([140, 255, 255])  # Hohe Grenzwerte für die Farbe (HSV)
+    #lower_color = np.array([105, 50, 50])  # Niedrige Grenzwerte für die Farbe (HSV)
+    #upper_color = np.array([130, 255, 255])  # Hohe Grenzwerte für die Farbe (HSV)
+
+    #rot dunkel
+    lower_color = np.array([320/2, 20*255/100, 20*255/100])
+    upper_color = np.array([359/2, 80*255/100, 80*255/100])
+
+    #blau
+    lower_color = np.array([170/2, 30*255/100, 0*255/100])
+    upper_color = np.array([240/2, 100*255/100, 100*255/100])
+
+    lower_color = np.array([65/2, 10*255/100, 60*255/100])
+    upper_color = np.array([80/2, 98*255/100, 100*255/100])
+
+    #rot hell
+    lower_color = np.array([345/2, 20*255/100, 40*255/100])
+    upper_color = np.array([359/2, 40*255/100, 80*255/100])
+
+    #blau hell
+    lower_color = np.array([210/2, 30*255/100, 30*255/100])
+    upper_color = np.array([235/2, 90*255/100, 60*255/100])
 
     min_radius = 15
-    color_tolerance = 35        #darf nicht kleiner als 35 sein
+    color_tolerance = 50        #darf nicht kleiner als 35 sein
 
     
     # Schleife zum Lesen und Verarbeiten der Bilder von der Webcam
