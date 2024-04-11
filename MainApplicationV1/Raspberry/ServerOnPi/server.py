@@ -14,14 +14,16 @@ control = Controls()
 
 @app.route('/controls', methods=['POST'])
 def controls():
-    data = request.get_json(True)
-    verticalSpeed = data["verticalSpeed"]
-    rotationalSpeed = data["rotationalSpeed"]
-    lightsState = data["lightsState"]
-    doorState = data["doorState"]
+    try:
+        data = request.get_json(True)
+        verticalSpeed = data["verticalSpeed"]
+        rotationalSpeed = data["rotationalSpeed"]
+        lightsState = data["lightsState"]
+        doorState = data["doorState"]
 
-    control.changeValues(verticalSpeed, rotationalSpeed, lightsState, doorState)
-    
+        control.changeValues(verticalSpeed, rotationalSpeed, lightsState, doorState)
+    except Exception as e:
+        print(e)
     return Response("success") # return things such as data from distance sensors
 
 

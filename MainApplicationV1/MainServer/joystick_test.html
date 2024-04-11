@@ -5,44 +5,51 @@
     <title>
         Controls
     </title>
-    <meta name="viewport" content="user-scalable=no">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h1>Controls </h1>
-    <div class="valueList">
-        <div>X: <span id="x_coordinate"> </span></div>
-        <div>Y: <span id="y_coordinate"> </span></div>
-        <div>Speed: <span id="speed"> </span> %</div>
-        <div>Angle: <span id="angle"> </span></div>
-    </div>
-    <div class="flex">
-        <label class="switchBox">
-            Autopilot:
-            <span class="switch">
-                <input type="checkbox" id="autopilotState">
-                <span class="slider"></span>
-            </span>
-        </label>
-        <div class="switchBox">
-            Lights:
-            <label class="switch">
-                <input type="checkbox" id="lightsState">
-                <span class="slider"></span>
-            </label>
-        </div>
-        <div class="switchBox">
-            Door:
-            <label class="switch">
-                <input type="checkbox" id="doorState">
-                <span class="slider"></span>
-            </label>
-        </div>
-    </div>
+    <!--<h1>Controls </h1>-->
 
-    <canvas id="canvas" name="controls"></canvas>
+    <div class="flex">
+        <img id="camImage" src="http://192.168.200.51:8080/img">
+
+        <div class="valueList ignoreWhenAuto">
+            <div>X: <span id="x_coordinate"> </span></div>
+            <div>Y: <span id="y_coordinate"> </span></div>
+            <div>Speed: <span id="speed"> </span> %</div>
+            <div>Angle: <span id="angle"> </span></div>
+        </div>
+        <div>
+            <label class="switchBox">
+                Autopilot:
+                <span class="switch">
+                    <input type="checkbox" id="autopilotState" onclick="sendData();switchVisibility()">
+                    <span class="slider"></span>
+                </span>
+            </label>
+            <div class="switchBox ignoreWhenAuto">
+                Lights:
+                <label class="switch">
+                    <input type="checkbox" id="lightsState" onclick="sendData()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="switchBox ignoreWhenAuto">
+                Door:
+                <label class="switch">
+                    <input type="checkbox" id="doorState" onclick="sendData()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <canvas id="canvas ignoreWhenAuto" name="controls"></canvas>
+    </div>
     <script>
+        let imgSrc = "http://192.168.200.51:8080/img";
+        let controlSrc = "http://192.168.200.51:8080/controls";
+
 
         var canvas, ctx;
 
@@ -71,18 +78,18 @@
 
         var width, height, radius, x_orig, y_orig;
         function resize() {
-            width = window.innerWidth;
-            radius = 100;
-            height = radius * 6.5;
+            width = (window.innerWidth < window.innerHeight * 0.7) ? window.innerWidth : window.innerHeight * 0.7;
+            radius = width / 4.5;
+            height = width;
             ctx.canvas.width = width;
             ctx.canvas.height = height;
             background();
-            joystick(width / 2, height / 3);
+            joystick(width / 2, height / 2);
         }
 
         function background() {
             x_orig = width / 2;
-            y_orig = height / 3;
+            y_orig = height / 2;
 
             ctx.beginPath();
             ctx.arc(x_orig, y_orig, radius + 20, 0, Math.PI * 2, true);
@@ -104,8 +111,8 @@
         let paint = false;
 
         function getPosition(event) {
-            var mouse_x = event.clientX || event.touches[0].clientX;
-            var mouse_y = event.clientY || event.touches[0].clientY;
+            var mouse_x = event.pageX || event.touches[0].pageX;
+            var mouse_y = event.pageY || event.touches[0].pageY;
             coord.x = mouse_x - canvas.offsetLeft;
             coord.y = mouse_y - canvas.offsetTop;
         }
@@ -135,16 +142,19 @@
             paint = false;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             background();
-            joystick(width / 2, height / 3);
+            joystick(width / 2, height / 2);
             x_relative = 0;
             y_relative = 0;
+
+            setTimeout(sendData, 10);
+
             document.getElementById("x_coordinate").innerText = 0;
             document.getElementById("y_coordinate").innerText = 0;
             document.getElementById("speed").innerText = 0;
             document.getElementById("angle").innerText = 0;
-
         }
-
+        let sendTimeout = 0;
+        let prev_x_relative, prev_y_relative
         function Draw(event) {
 
             if (paint) {
@@ -177,17 +187,30 @@
 
                 var speed = Math.round(100 * Math.sqrt(Math.pow(x - x_orig, 2) + Math.pow(y - y_orig, 2)) / radius);
 
-                x_relative = Math.round(x - x_orig);
-                y_relative = Math.round(y - y_orig);
+                x_relative = Math.round(100 * (x - x_orig) / radius);
+                y_relative = Math.round(100 * (y - y_orig) / radius);
 
-
-                document.getElementById("x_coordinate").innerText = x_relative;
-                document.getElementById("y_coordinate").innerText = -y_relative;
-                document.getElementById("speed").innerText = speed;
-                document.getElementById("angle").innerText = angle_in_degrees;
+                if (Date.now() - sendTimeout > 100 && (prev_x_relative != x_relative || prev_y_relative != y_relative)) {
+                    sendTimeout = Date.now();
+                    sendData();
+                    prev_x_relative = x_relative;
+                    prev_y_relative = y_relative;
+                    document.getElementById("x_coordinate").innerText = x_relative;
+                    document.getElementById("y_coordinate").innerText = -y_relative;
+                    document.getElementById("speed").innerText = speed;
+                    document.getElementById("angle").innerText = angle_in_degrees;
+                }
             }
         }
 
+
+        function switchVisibility() {
+            let state = document.getElementById("autopilotState").checked;
+            let items = document.getElementsByClassName("ignoreWhenAuto");
+            for (let i = 0; i < items.length; i++) {
+                items[i].style.visibility = (state) ? 'visible' : 'hidden';
+            }
+        }
 
 
         function sendData() {
@@ -195,31 +218,37 @@
             if (x_relative < 0) {
                 x_direction = 1;
             }
-            console.clear();
+            /*console.clear();
             console.log('{"verticalSpeed" :' + (-y_relative) +
                 ', "rotationalSpeed" :' + (x_direction * x_relative * x_relative / 100) +
                 ', "lightsState" : ' + document.getElementById("lightsState").checked +
                 ', "doorState" :' + document.getElementById("doorState").checked +
                 ', "autopilot" :' + document.getElementById("autopilotState").checked +
-                '}');
-            const response = fetch('http://192.168.200.30:5000/controls', {
-                method: 'POST',
-                body: '{"verticalSpeed" :' + (-y_relative) +
-                    ', "rotationalSpeed" :' + (x_direction * x_relative * x_relative / 100) +
-                    ', "lightsState" : ' + document.getElementById("lightsState").checked +
-                    ', "doorState" :' + document.getElementById("doorState").checked +
-                    ', "autopilot" :' + document.getElementById("autopilotState").checked +
+                '}');*/
+            try {
+                fetch(controlSrc, {
+                    method: 'POST',
+                    body: '{"verticalSpeed" :' + (-y_relative) +
+                        ', "rotationalSpeed" :' + (x_direction * x_relative * x_relative / 100) +
+                        ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                        ', "doorState" :' + document.getElementById("doorState").checked +
+                        ', "autopilot" :' + document.getElementById("autopilotState").checked +
 
-                    '}',
-                headers: {
-                    'Content-Type': 'text/plain'
-                }
-            });
-            //console.log(response); //extract JSON from the http response
-            // do something with myJson
-
+                        '}',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+            } catch (err) {
+                console.log("test");
+            }
         }
-        window.setInterval(sendData, 50);
+        function updateImage() {
+            document.getElementById('camImage').src = imgSrc + '?' + Date.now();
+        }
+        //window.setInterval(sendData, 200);
+        window.setInterval(updateImage, 50);
+
     </script>
 </body>
 

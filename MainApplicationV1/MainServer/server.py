@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, render_template
 import cv2
 import threading
 import numpy as np
 import requests
 
 app = Flask(__name__)
+
 frame = None  # Global variable to store the latest frame
 image_data = None
 
@@ -21,22 +22,20 @@ threading.Thread(target=display_frame, daemon=True).start()  # Start display thr
 @app.route('/receive_frame', methods=['POST'])
 def receive_frame():
     global frame
-
+    global image_data
     if 'image' not in request.files:
         return jsonify({'error': 'Missing image data'}), 400
 
-    image_data = request.files['image'].read()
-    print(image_data)
-    frame = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)  # Update global frame
+    temp_data = request.files['image'].read()
+    frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(temp_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    image_data = cv2.imencode(".jpg", frame)[1].tobytes()
 
     return jsonify({'message': 'Frame received successfully'}), 200
 
 @app.route('/img')
 def img():
-    return Response(b'--frame\r\n'+
-                    b'Content-Type: text/plain\r\n\r\n'+
-                    image_data+b'\r\n',
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    global image_data
+    return Response(image_data, mimetype='image/jpg')
 
 
 @app.route('/controls', methods=['POST'])
@@ -57,6 +56,11 @@ def controls():
         print("sending failed")
     
     return Response("success") # return things such as data from distance sensors
+
+@app.after_request
+def add_header(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
