@@ -61,10 +61,51 @@ def display_frame(): # not needed in production
 threading.Thread(target=display_frame, daemon=True).start()  # Start display thread
 
 autopilot = Autopilot(PI_URL=PI_URL)
-def autoControl():
+def autoControl(): #still pseudocode
     global autopilot
-    while not autopilot.stop:
-        pass
+    ballFound = False
+    while not autopilot.stop and not ballFound:
+        if (ballinimage):
+            ballFound = True
+        else:
+            autopilot.turn(100, 100)
+    ballCaught = False
+    while not autopilot.stop and not ballCaught:
+        if ballx < 0.3:
+            autopilot.turn((0.5 - ballx) * someconstant, 100)
+        elif ballx > 0.7:
+            autopilot.turn((ballx-0.5) * someconstant, 100)
+        else:
+            if bally > 0.5:
+                autopilot.forward(100, 100)
+            elif (bally > 0.8):
+                autopilot.forward(50, 50)
+            elif (noball):
+                autopilot.forward(200, 50)
+                autopilot.setDoorState(True)
+                ballCaught = True
+    goalFound = False
+    while not autopilot.stop and not ballFound:
+        if (goalInImage):
+            goalFound = True
+        else:
+            autopilot.turn(100, 100)
+    inFrontOfGoal = False
+    while not autopilot.stop and not inFrontOfGoal:
+        if goalCenterx < 0.4:
+            autopilot.turn((0.5 - goalCenterx) * someconstant, 80)
+        elif goalCenterx > 0.6:
+            autopilot.turn((goalCenterx-0.5) * someconstant, 80)
+        else:
+            if GoalLowerEdge > 0.3:
+                autopilot.forward(100, 100)
+            elif (GoalUpperEdge > 0.1):
+                autopilot.forward(50, 50)
+            else:
+                autopilot.forward(200, 50)
+                autopilot.setDoorState(False)
+                inFrontOfGoal = True
+
 
 @app.route('/receive_frame', methods=['POST'])
 def receive_frame():
