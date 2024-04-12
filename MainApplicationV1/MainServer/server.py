@@ -71,9 +71,9 @@ def autoControl(): #still pseudocode
             autopilot.turn(100, 100)
     ballCaught = False
     while not autopilot.stop and not ballCaught:
-        if ballx < 0.3:
+        if ballx < 0.4:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
-        elif ballx > 0.7:
+        elif ballx > 0.6:
             autopilot.turn((ballx-0.5) * someconstant, 100)
         else:
             if bally > 0.5:
