@@ -4,51 +4,16 @@ import threading
 import numpy as np
 import requests
 from autopilot import Autopilot
+from imageProcessing import ImageProcessing
 
 app = Flask(__name__)
 
 frame = None  # Global variable to store the latest frame
 image_data = None
 PI_URL = "http://192.168.200.30:5000/controls"
+ballColor = "blue"
 
-# Funktion zur Konturerkennung und Markierung mit Rechtecken
-def detect_objects(frame, min_area=500):
-    # Konvertiere das Bild in Graustufen
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
-    # Wende den Kantendetektor an
-    edges = cv2.Canny(gray, 50, 150)
-
-    cv2.imshow("Canny", edges)
-    
-    # Finde Konturen im Bild
-    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    # Durchlaufe alle gefundenen Konturen
-    for contour in contours:
-        # Berechne das umgebende Rechteck um die Kontur
-        x, y, w, h = cv2.boundingRect(contour)
-        
-        # Überprüfe, ob das Rechteck die Mindestgröße hat
-        if w * h < min_area:
-            continue
-        
-        # Überprüfe, ob das Rechteck von einem anderen Rechteck umgeben ist
-        surrounded = False
-        for other_contour in contours:
-            if other_contour is not contour:
-                other_x, other_y, other_w, other_h = cv2.boundingRect(other_contour)
-                if x > other_x and y > other_y and x + w < other_x + other_w and y + h < other_y + other_h:
-                    surrounded = True
-                    break
-        
-        if surrounded:
-            continue
-        
-        # Zeichne ein Rechteck um die Kontur
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    
-    return frame
+imProcessing = ImageProcessing()
 
 def display_frame(): # not needed in production
     global frame
@@ -63,10 +28,23 @@ threading.Thread(target=display_frame, daemon=True).start()  # Start display thr
 autopilot = Autopilot(PI_URL=PI_URL)
 def autoControl(): #still pseudocode
     global autopilot
+    global imProcessing
+    global frame
+    global ballColor
+    imProcessing.setModeToBall()
+    imProcessing.setBallColor(ballColor)
+
     ballFound = False
+    ballx = None
+    bally = None
+    someconstant = None
     while not autopilot.stop and not ballFound:
-        if (ballinimage):
+        ball = imProcessing.process(frame)
+        if (len(ball) > 0):
             ballFound = True
+            ballx = ball[0][0]
+            bally = ball[0][1]
+            noball = False
         else:
             autopilot.turn(100, 100)
     ballCaught = False
@@ -84,6 +62,14 @@ def autoControl(): #still pseudocode
                 autopilot.forward(200, 50)
                 autopilot.setDoorState(True)
                 ballCaught = True
+        ball = imProcessing.process(frame)
+        if (len(ball) > 0):
+            ballx = ball[0][0]
+            bally = ball[0][1]
+        else:
+            noball = True
+
+    """
     goalFound = False
     while not autopilot.stop and not ballFound:
         if (goalInImage):
@@ -105,6 +91,7 @@ def autoControl(): #still pseudocode
                 autopilot.forward(200, 50)
                 autopilot.setDoorState(False)
                 inFrontOfGoal = True
+    #"""
 
 
 @app.route('/receive_frame', methods=['POST'])

@@ -45,17 +45,42 @@ class ImageProcessing():
                     circles.append((x, y, radius))
         return circles
     
-    def process(self, frame):
+    def process(self, frame, check_interval=20, consistency_threshold=0.2):
         self.frame = frame
+        consistent_circles = []
+        # Track circle detections for consistency check
+        circle_history = {}
 
-        if (self.mode == 0):
-            ball = self.getBallCoords()
-            if(len(ball) > 0):
-                print("Ball found")
-        else:
-            target = self.getTargetCoords()
-            if(len(target) > 0):
-                print("Target found")
+        for _ in range(check_interval):
+            # Ball detection logic (assuming you have these functions)
+            ball_circles = self.findCircles(
+                self.getContours(self.applyColorMask(self.ball_lowerColor, self.ball_upperColor))
+            )
+
+            # Update circle history with radius
+            for x, y, radius in ball_circles:
+                key = (int(x), int(y))  # Use x and y for unique identifier
+                if key in circle_history:
+                    circle_history[key].append(radius)
+                else:
+                    circle_history[key] = [radius]
+
+        # Filter circles based on consistency
+        for key, radius_history in circle_history.items():
+            if len(radius_history) / check_interval >= consistency_threshold:
+            # Calculate average radius for consistency
+                average_radius = sum(radius_history) / len(radius_history)
+                consistent_circles.append((key[0], key[1], average_radius))
+
+        # Print or utilize the detected consistent circles (consistent_circles list)
+        if len(consistent_circles) > 0:
+            print("Consistent circles found!")
+        
+        # Reset circle history for next frame
+        circle_history = {}
+
+        return consistent_circles
+
         
 
     def setModeToBall(self):
@@ -72,14 +97,12 @@ class ImageProcessing():
         )
     
     #Farbe für den Ball setzen
-    def setBallColor(self, lowerColor, upperColor):
-        self.ball_lowerColor = lowerColor
-        self.ball_upperColor = upperColor
+    def setBallColor(self, color): # Color string
+        pass
     
     #Farbe für das Ziel setzen
-    def setTargetColor(self, lowerColor, upperColor):
-        self.target_lowerColor = lowerColor
-        self.target_upperColor = upperColor
+    def setTargetColor(self, color):
+        pass
 
     #die Koordinaten des Ziels ermitteln
     def getTargetCoords(self, frame):
