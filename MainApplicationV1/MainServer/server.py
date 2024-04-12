@@ -3,11 +3,13 @@ import cv2
 import threading
 import numpy as np
 import requests
+from autopilot import Autopilot
 
 app = Flask(__name__)
 
 frame = None  # Global variable to store the latest frame
 image_data = None
+PI_URL = "http://192.168.200.30:5000/controls"
 
 # Funktion zur Konturerkennung und Markierung mit Rechtecken
 def detect_objects(frame, min_area=500):
@@ -48,7 +50,7 @@ def detect_objects(frame, min_area=500):
     
     return frame
 
-def display_frame():
+def display_frame(): # not needed in production
     global frame
     while True:
         if frame is not None:
@@ -57,6 +59,12 @@ def display_frame():
                 break
 
 threading.Thread(target=display_frame, daemon=True).start()  # Start display thread
+
+autopilot = Autopilot(PI_URL=PI_URL)
+def autoControl():
+    global autopilot
+    while not autopilot.stop:
+        pass
 
 @app.route('/receive_frame', methods=['POST'])
 def receive_frame():
@@ -80,14 +88,19 @@ def img():
 
 @app.route('/controls', methods=['POST'])
 def controls():
+    global autopilot
     data = request.get_json(True)
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     lightsState = data["lightsState"]
     doorState = data["doorState"]
-    autopilot = data["autopilot"]
-
-    PI_URL = "http://192.168.200.30:5000/controls"
+    enableAutopilot = data["autopilot"]
+    if enableAutopilot:
+        autopilot.stop = False
+        threading.Thread(target=autoControl, daemon=True).start()  # Start display thread
+        return Response("success")
+    
+    autopilot.stop = True
     response = requests.post(PI_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': lightsState, 'doorState':doorState})
     try:
         response.raise_for_status()  # Raise exception on non-200 status codes
@@ -95,7 +108,7 @@ def controls():
     except:
         print("sending failed")
     
-    return Response("success") # return things such as data from distance sensors
+    return Response("success")
 
 @app.after_request
 def add_header(response):
