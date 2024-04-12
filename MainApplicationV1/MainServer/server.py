@@ -39,7 +39,7 @@ def autoControl(): #still pseudocode
     bally = None
     someconstant = None
     while not autopilot.stop and not ballFound:
-        ball = imProcessing.process(frame)
+        ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
             ballFound = True
             ballx = ball[0][0]
