@@ -98,7 +98,8 @@ class ImageProcessing():
     
     #Farbe für den Ball setzen
     def setBallColor(self, color): # Color string
-        pass
+        self.ball_lowerColor = np.array([170/2, 30*255/100, 0*255/100])
+        self.ball_upperColor = np.array([240/2, 100*255/100, 100*255/100])
     
     #Farbe für das Ziel setzen
     def setTargetColor(self, color):
