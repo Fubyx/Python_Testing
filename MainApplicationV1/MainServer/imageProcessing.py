@@ -9,12 +9,29 @@ class ImageProcessing():
     def __init__(self):
         self.frame = None
         self.mode = None # 0 = Balldetection; 1 = TargetDetection
+        # Variables for color thresholds; 
+        # _2 for orange as its threshold goes from ~350 to ~10
+        self.ball_lowercolor = None
+        self.ball_uppercolor = None
+        self.ball_lowercolor_2 = None
+        self.ball_uppercolor_2 = None
 
-    def applyColorMask(self, lower_color, upper_color):
+        self.lightlevel = None # 0 = Dark; 1 = light
+
+        # Variable for saving current color strings so that the color can be
+        # edited on light level change
+        self.currentBallColor = None
+        self.currentTargetColor = None
+
+    def applyColorMask(self):
         hsv = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
     
         # Erzeuge einen Maskenbereich für die angegebene Farbe
-        mask = cv2.inRange(hsv, lower_color, upper_color)
+        mask = cv2.inRange(hsv, self.ball_lowercolor, self.ball_uppercolor)
+        if self.ball_lowercolor_2 is not None:
+            mask2 = cv2.inRange(hsv, self.ball_lowercolor_2, self.ball_uppercolor_2)
+            #Combine the 2 masks into mask
+            mask = cv2.bitwise_or(mask, mask2)
         return mask
 
     def getContours(self, img):
@@ -45,7 +62,7 @@ class ImageProcessing():
                     circles.append((x, y, radius))
         return circles
     
-    def process(self, frame, check_interval=20, consistency_threshold=0.2):
+    def getBallCoords(self, frame, check_interval=20, consistency_threshold=0.2):
         self.frame = frame
         consistent_circles = []
         # Track circle detections for consistency check
@@ -54,7 +71,9 @@ class ImageProcessing():
         for _ in range(check_interval):
             # Ball detection logic (assuming you have these functions)
             ball_circles = self.findCircles(
-                self.getContours(self.applyColorMask(self.ball_lowerColor, self.ball_upperColor))
+                self.getContours(
+                    self.applyColorMask()
+                )
             )
 
             # Update circle history with radius
@@ -89,21 +108,93 @@ class ImageProcessing():
     def setModeToTarget(self):
         self.mode = 1
     
-    def getBallCoords(self):
-        return self.findCircles(
-            self.getContours(
-                self.applyColorMask(self.ball_lowerColor, self.ball_upperColor)
-            )
-        )
-    
     #Farbe für den Ball setzen
     def setBallColor(self, color): # Color string
-        self.ball_lowerColor = np.array([170/2, 30*255/100, 0*255/100])
-        self.ball_upperColor = np.array([240/2, 100*255/100, 100*255/100])
-    
+        self.currentBallColor = color
+        # Farben Stand 12.04. 10:41
+        if(self.lightlevel == 1):
+            match(color):
+                case "red":
+                    self.ball_lowercolor = np.array([345/2, 20*255/100, 40*255/100])
+                    self.ball_uppercolor = np.array([359/2, 40*255/100, 80*255/100])
+        
+                case "blue":
+                    self.ball_lowercolor = np.array([210/2, 30*255/100, 30*255/100])
+                    self.ball_uppercolor = np.array([235/2, 90*255/100, 60*255/100])
+
+                case "orange":
+                    #Todo: Werte anpassen
+                    self.ball_lowercolor = np.array([355/2, 50*255/100, 70*255/100])
+                    self.ball_uppercolor = np.array([330/2, 50*255/100, 90*255/100])
+                    self.ball_lowercolor_2 = np.array([320/2, 30*255/100, 50*255/100])
+                    self.ball_uppercolor_2 = np.array([330/2, 50*255/100, 90*255/100])
+        
+                case "yellow":
+                    self.ball_lowercolor = np.array([65/2, 40*255/100, 60*255/100])
+                    self.ball_uppercolor = np.array([80/2, 90*255/100, 90*255/100])
+
+                case "pink":
+                    self.ball_lowercolor = np.array([320/2, 30*255/100, 50*255/100])
+                    self.ball_uppercolor = np.array([330/2, 50*255/100, 90*255/100])
+        else:
+            match(color):
+                case "red":
+                    self.ball_lowercolor = np.array([230/2, 20*255/100, 20*255/100])
+                    self.ball_uppercolor = np.array([359/2, 80*255/100, 80*255/100])
+        
+                case "blue":
+                    self.ball_lowercolor = np.array([210/2, 30*255/100, 10*255/100])
+                    self.ball_uppercolor = np.array([240/2, 100*255/100, 70*255/100])
+
+                case "orange":
+                    #Todo: Werte anpassen
+                    self.ball_lowercolor = np.array([0/2, 40*255/100, 60*255/100])
+                    self.ball_uppercolor = np.array([30/2, 100*255/100, 100*255/100])
+        
+                case "yellow":
+                    self.ball_lowercolor = np.array([65/2, 40*255/100, 60*255/100])
+                    self.ball_uppercolor = np.array([80/2, 90*255/100, 90*255/100])
+
+                case "pink":
+                    self.ball_lowercolor = np.array([290/2, 30*255/100, 20*255/100])
+                    self.ball_uppercolor = np.array([320/2, 50*255/100, 100*255/100])
+        
     #Farbe für das Ziel setzen
     def setTargetColor(self, color):
-        pass
+        self.currentTargetColor = color
+        if (self.lightlevel == 1):
+            match color:
+                case "red":
+                    pass
+                case "blue":
+                    pass
+                case "green":
+                    pass
+                case "yellow":
+                    pass
+        else:
+            match color:
+                case "red":
+                    self.target_lowercolor = np.array([340/2, 60*255/100, 40*255/100])
+                    self.target_uppercolor = np.array([359/2, 80*255/100, 100*255/100])
+
+                case "blue":
+                    self.target_lowercolor = np.array([175/2, 80*255/100, 30*255/100])
+                    self.target_uppercolor = np.array([230/2, 100*255/100, 100*255/100])
+
+                case "green":
+                    self.target_lowercolor = np.array([100/2, 30*255/100, 30*255/100])
+                    self.target_uppercolor = np.array([140/2, 60*255/100, 100*255/100])
+
+                case "yellow":
+                    self.target_lowercolor = np.array([55/2, 50*255/100, 30*255/100])
+                    self.target_uppercolor = np.array([75/2, 100*255/100, 100*255/100])
+
+    def setLightLevel(self, lightlevel):
+        self.lightlevel = lightlevel
+        # Update color thresholds on light change
+        self.setBallColor(self.currentBallColor)
+        self.setTargetColor(self.currentTargetColor)
 
     #die Koordinaten des Ziels ermitteln
     def getTargetCoords(self, frame):
