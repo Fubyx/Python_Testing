@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 frame = None  # Global variable to store the latest frame
 image_data = None
-PI_URL = "http://192.168.200.30:5000/controls"
+PI_URL = "http://10.11.121.93:5000/controls"
 ballColor = "blue"
 
 imProcessing = ImageProcessing()
@@ -62,7 +62,7 @@ def autoControl(): #still pseudocode
                 autopilot.forward(200, 50)
                 autopilot.setDoorState(True)
                 ballCaught = True
-        ball = imProcessing.process(frame)
+        ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
             ballx = ball[0][0]
             bally = ball[0][1]
@@ -103,7 +103,7 @@ def receive_frame():
 
     temp_data = request.files['image'].read()
     frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(temp_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-    frame = detect_objects(frame)
+    #frame = detect_objects(frame)
     image_data = cv2.imencode(".jpg", frame)[1].tobytes()
 
     return jsonify({'message': 'Frame received successfully'}), 200
