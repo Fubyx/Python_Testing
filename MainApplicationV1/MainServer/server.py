@@ -37,7 +37,7 @@ def autoControl(): #still pseudocode
     ballFound = False
     ballx = None
     bally = None
-    someconstant = None
+    someconstant = 0.1
     while not autopilot.stop and not ballFound:
         ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
@@ -93,6 +93,71 @@ def autoControl(): #still pseudocode
                 inFrontOfGoal = True
     #"""
 
+def mark_ball_in_color(frame, lower_color, upper_color,min_radius, color_tolerance):
+    # Konvertiere das Bild von BGR zu HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    
+    # Erzeuge einen Maskenbereich für die angegebene Farbe
+    mask = cv2.inRange(hsv, lower_color, upper_color)
+
+    cv2.imshow("Farbe", mask)
+
+    """
+    #Apply Gradient
+    ksize = 3
+    gX = cv2.Sobel(mask, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=ksize)
+    gY = cv2.Sobel(mask, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=ksize)
+    gX = cv2.convertScaleAbs(gX)
+    gY = cv2.convertScaleAbs(gY)
+    combined = cv2.addWeighted(gX, 0.5, gY, 0.5, 0)
+    cv2.imshow("Combined", combined)
+    
+    
+
+    circles = cv2.HoughCircles(edges, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=10, maxRadius=300)
+    if circles is not None:
+        circles = np.round(circles[0, :]).astype("int")
+        for (x, y, r) in circles: 
+            if r > 10:
+                cv2.circle(frame, (x, y), r, (0, 0, 255), 2)
+    """
+    edges = cv2.Canny(mask, 50, 150, apertureSize=3)
+    cv2.imshow("Canny", edges)
+
+    # Finde Konturen im Maskenbereich
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+
+    for contour in contours:
+            # Berechne das Zentrum und den Radius des Balls
+            (x, y), radius = cv2.minEnclosingCircle(contour)
+            radius = int(radius)
+
+
+            #59.041175842285156 und r= 6
+            #65.85074615478516 und r= 8
+            #87.98148345947266 und r= 13
+            #138.0 und r= 23
+            #371.89569091796875 und r= 79
+            #426.7767333984375 und r= 91
+            
+            # Überprüfe, ob der Radius größer als der Mindestradius ist
+            if radius > min_radius:
+                print(str(y) + " und r= " + str(radius))
+                # Erzeuge eine Maske für den Kreisbereich
+                mask_circle = np.zeros_like(frame[:, :, 0], dtype="uint8")
+                cv2.circle(mask_circle, (int(x), int(y)), radius, (255, 255, 255), -1)
+
+                # Wende die Maske an, um die Farbinformationen innerhalb des Kreises zu extrahieren
+                masked_frame = cv2.bitwise_and(frame, frame, mask=mask_circle)
+
+                # Überprüfe die Farbkonsistenz anhand der Standardabweichung
+                color_variance = np.std(masked_frame[mask_circle == 255], axis=0)
+                if np.all(color_variance < color_tolerance):
+                    # Zeichne den Kreis, wenn die Farbe konsistent ist
+                    cv2.circle(frame, (int(x), int(y)), radius, (0, 255, 0), 2)
+
+    return frame
 
 @app.route('/receive_frame', methods=['POST'])
 def receive_frame():
@@ -103,6 +168,18 @@ def receive_frame():
 
     temp_data = request.files['image'].read()
     frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(temp_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+    
+    
+    
+    min_radius = 5
+    color_tolerance = 50        #darf nicht kleiner als 35 sein
+    #blau
+    lower_color = np.array([190/2, 30*255/100, 0*255/100])
+    upper_color = np.array([240/2, 100*255/100, 100*255/100])
+    frame = mark_ball_in_color(frame, lower_color, upper_color, min_radius, color_tolerance)
+    
+
+
     #frame = detect_objects(frame)
     image_data = cv2.imencode(".jpg", frame)[1].tobytes()
 
