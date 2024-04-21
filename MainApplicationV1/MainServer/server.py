@@ -169,7 +169,7 @@ def receive_frame():
     temp_data = request.files['image'].read()
     frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(temp_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
     
-    
+    """
     
     min_radius = 5
     color_tolerance = 50        #darf nicht kleiner als 35 sein
@@ -179,7 +179,7 @@ def receive_frame():
     frame = mark_ball_in_color(frame, lower_color, upper_color, min_radius, color_tolerance)
     
 
-
+    #"""
     #frame = detect_objects(frame)
     image_data = cv2.imencode(".jpg", frame)[1].tobytes()
 
