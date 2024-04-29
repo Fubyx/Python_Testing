@@ -5,6 +5,7 @@ import numpy as np
 import requests
 from autopilot import Autopilot
 import time
+from imageProcessing import ImageProcessing
 
 app = Flask(__name__)
 
@@ -18,7 +19,7 @@ image_data = None
 PI_URL = "http://192.168.86.30:5000/controls"
 
 ballColor = "blue"
-
+imProcessing = ImageProcessing()
 
 def display_frame(): # not needed in production
     global frame
@@ -34,15 +35,36 @@ autopilot = Autopilot(PI_URL=PI_URL)
 def autoControl(): #still pseudocode
     global autopilot
     global frame
+    global imProcessing
+    global ballColor
 
     autopilot.setBallColor(ballColor)
-    autopilot.findBall(frame)
-
-    
+    imProcessing.setModeToBall()
+    imProcessing.setBallColor(ballColor)
+        
     ballx = None
     bally = None
     height = 480
     width = 640
+
+    ballFound = False
+    while (not autopilot.stopped) and (not ballFound):
+        ball = imProcessing.getBallCoords(frame)
+        print (ball)
+        if (len(ball) > 0):
+            height, width, channels = frame.shape 
+            ballFound = True
+            ballx = ball[0][0]/width
+            bally = ball[0][1]/height
+            print(f"x: {ballx}, y: {bally}")
+            noball = False
+        else:
+            autopilot.turn(100, 100)
+        time.sleep(1)
+        print('slept')
+
+    
+    
     someconstant = 0.1
     
     ballCaught = False
@@ -193,13 +215,14 @@ def img():
 @app.route('/controls', methods=['POST'])
 def controls():
     global autopilot
+    global ballColor
     data = request.get_json(True)
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     lightsState = data["lightsState"]
     doorState = data["doorState"]
     enableAutopilot = data["autopilot"]
-    autopilot.setBallColor(data["ballColor"])
+    ballColor = data["ballColor"]
     try:
         
         if enableAutopilot:

@@ -46,7 +46,7 @@ class ImageProcessing():
             radius = int(radius)
             
             # Überprüfe, ob der Radius größer als der Mindestradius ist
-            if radius > self.MIN_RADIUS and radius > (0.24*y-8) * 0.6 and  radius < (0.24*y-8) * 1.5:
+            if radius > self.MIN_RADIUS and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3:
                 # Erzeuge eine Maske für den Kreisbereich
                 mask_circle = np.zeros_like(self.frame[:, :, 0], dtype="uint8")
                 cv2.circle(mask_circle, (int(x), int(y)), radius, (255, 255, 255), -1)

@@ -1,11 +1,9 @@
 import time
 import requests
-from imageProcessing import ImageProcessing
 
 class Autopilot:
 
     PI_URL = "http://192.168.200.30:5000/controls"
-    imProcessing = ImageProcessing()
     stopped = False
     lights = False
     doorState = False
@@ -14,30 +12,7 @@ class Autopilot:
 
     def __init__(self, PI_URL) -> None:
         self.PI_URL = PI_URL
-
-    def findBall(self, frame):
-        self.imProcessing.setModeToBall()
-        self.imProcessing.setBallColor(self.ballColor)
         
-        ballFound = False
-
-        while (not self.stopped) and (not ballFound):
-            ball = self.imProcessing.getBallCoords(frame)
-            print (ball)
-            if (len(ball) > 0):
-                height, width, channels = frame.shape 
-                ballFound = True
-                ballx = ball[0][0]/width
-                bally = ball[0][1]/height
-                print(f"x: {ballx}, y: {bally}")
-                noball = False
-            else:
-                self.turn(100, 100)
-            time.sleep(1)
-            print('slept')
-
-    def catchBall(self, frame):
-        return
     
     def turn(self, milliseconds, power=100):
         self.stopped = False
