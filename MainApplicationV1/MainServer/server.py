@@ -5,8 +5,14 @@ import numpy as np
 import requests
 from autopilot import Autopilot
 from imageProcessing import ImageProcessing
+import time
 
 app = Flask(__name__)
+
+# Remove success messages of get/post etc
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 frame = None  # Global variable to store the latest frame
 image_data = None
@@ -37,18 +43,25 @@ def autoControl(): #still pseudocode
     ballFound = False
     ballx = None
     bally = None
+    height = None
+    width = None
     someconstant = 0.1
-    while not autopilot.stop and not ballFound:
+    while not autopilot.stopped and not ballFound:
         ball = imProcessing.getBallCoords(frame)
+        
+        print (ball)
         if (len(ball) > 0):
+            height, width, channels = frame.shape 
             ballFound = True
-            ballx = ball[0][0]
-            bally = ball[0][1]
+            ballx = ball[0][0]/width
+            bally = ball[0][1]/height
+            print(f"x: {ballx}, y: {bally}")
             noball = False
         else:
             autopilot.turn(100, 100)
+        time.sleep(1)
     ballCaught = False
-    while not autopilot.stop and not ballCaught:
+    while not autopilot.stopped and not ballCaught:
         if ballx < 0.4:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
         elif ballx > 0.6:
@@ -59,25 +72,26 @@ def autoControl(): #still pseudocode
             elif (bally > 0.8):
                 autopilot.forward(50, 50)
             elif (noball):
-                autopilot.forward(200, 50)
                 autopilot.setDoorState(True)
+                autopilot.forward(200, 50)
+                autopilot.setDoorState(False)
                 ballCaught = True
         ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
-            ballx = ball[0][0]
-            bally = ball[0][1]
+            ballx = ball[0][0]/width
+            bally = ball[0][1]/height
         else:
             noball = True
 
     """
     goalFound = False
-    while not autopilot.stop and not ballFound:
+    while not autopilot.stopped and not ballFound:
         if (goalInImage):
             goalFound = True
         else:
             autopilot.turn(100, 100)
     inFrontOfGoal = False
-    while not autopilot.stop and not inFrontOfGoal:
+    while not autopilot.stopped and not inFrontOfGoal:
         if goalCenterx < 0.4:
             autopilot.turn((0.5 - goalCenterx) * someconstant, 80)
         elif goalCenterx > 0.6:
@@ -194,26 +208,33 @@ def img():
 @app.route('/controls', methods=['POST'])
 def controls():
     global autopilot
+    global ballColor
     data = request.get_json(True)
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     lightsState = data["lightsState"]
     doorState = data["doorState"]
     enableAutopilot = data["autopilot"]
-    if enableAutopilot:
-        autopilot.stop = False
-        threading.Thread(target=autoControl, daemon=True).start()  # Start display thread
-        return Response("success")
-    
-    autopilot.stop = True
-    response = requests.post(PI_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': lightsState, 'doorState':doorState})
+    ballColor = data["ballColor"]
     try:
-        response.raise_for_status()  # Raise exception on non-200 status codes
-        print(f"sent successfully. Status code: {response.status_code}")
-    except:
-        print("sending failed")
-    
-    return Response("success")
+        
+        if enableAutopilot:
+            autopilot.stopped = False
+            threading.Thread(target=autoControl, daemon=True).start()
+            return Response("success")
+        
+        autopilot.stopped = True
+        response = requests.post(PI_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': lightsState, 'doorState':doorState})
+        try:
+            response.raise_for_status()  # Raise exception on non-200 status codes
+            #print(f"sent successfully. Status code: {response.status_code}")
+        except:
+            print("sending failed")
+        
+        return Response("success")
+    except Exception as e:
+        print(e)
+        return Response("Error")
 
 @app.after_request
 def add_header(response):

@@ -12,7 +12,7 @@
     <!--<h1>Controls </h1>-->
 
     <div class="flex">
-        <img id="camImage" src="http://192.168.200.51:8080/img">
+        <img id="camImage" src="http://10.11.121.111:8080/img">
 
         <div class="valueList ignoreWhenAuto">
             <div>X: <span id="x_coordinate"> </span></div>
@@ -252,7 +252,7 @@
                         ', "lightsState" : ' + document.getElementById("lightsState").checked +
                         ', "doorState" :' + document.getElementById("doorState").checked +
                         ', "autopilot" :' + document.getElementById("autopilotState").checked +
-
+                        ', "ballColor" : "' + document.getElementById("ballColor").value + '"' + 
                         '}',
                     headers: {
                         'Content-Type': 'text/plain'

@@ -4,7 +4,7 @@ import requests
 class Autopilot:
 
     PI_URL = "http://192.168.200.30:5000/controls"
-    stop = False
+    stopped = False
     lights = False
     doorState = False
 
@@ -12,6 +12,7 @@ class Autopilot:
         self.PI_URL = PI_URL
     
     def turn(self, milliseconds, power=100):
+        self.stopped = False
         response = requests.post(self.PI_URL, json={
             'verticalSpeed': 0, 
             'rotationalSpeed' : power, 
@@ -20,16 +21,18 @@ class Autopilot:
             })
         try:
             response.raise_for_status()  # Raise exception on non-200 status codes
-            print(f"sent successfully. Status code: {response.status_code}")
+            #print(f"sent successfully. Status code: {response.status_code}")
         except:
             print("sending failed")
         for i in range(1, 10):
             time.sleep(0.01*milliseconds)
-            if self.stop:
+            if self.stopped:
                 return
         self.stop()
 
+
     def forward(self, milliseconds, power=100):
+        self.stopped = False
         response = requests.post(self.PI_URL, json={
             'verticalSpeed': power, 
             'rotationalSpeed' : 0, 
@@ -38,12 +41,12 @@ class Autopilot:
             })
         try:
             response.raise_for_status()  # Raise exception on non-200 status codes
-            print(f"sent successfully. Status code: {response.status_code}")
+            #print(f"sent successfully. Status code: {response.status_code}")
         except:
             print("sending failed")
         for i in range(1, 10):
             time.sleep(0.01*milliseconds)
-            if self.stop:
+            if self.stopped:
                 return
         self.stop()
 
@@ -56,9 +59,11 @@ class Autopilot:
             })
         try:
             response.raise_for_status()  # Raise exception on non-200 status codes
-            print(f"sent successfully. Status code: {response.status_code}")
+            #print(f"sent successfully. Status code: {response.status_code}")
+            self.stopped = True
         except:
             print("sending failed")
+    
     def setDoorState(self, newState):
         self.doorState = newState
         self.stop()
