@@ -134,8 +134,6 @@ class ImageProcessing():
                 case "yellow":
                     self.ball_lowercolor = np.array([65/2, 40*255/100, 60*255/100])
                     self.ball_uppercolor = np.array([80/2, 90*255/100, 90*255/100])
-
-                
         else:
             match(color):
                 case "red":
