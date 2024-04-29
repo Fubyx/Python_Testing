@@ -94,7 +94,7 @@ def autoControl(): #still pseudocode
                 inFrontOfGoal = True
     #"""
 
-def mark_ball_in_color(frame, lower_color, upper_color,min_radius, color_tolerance):
+def mark_ball_in_color(frame, lower_color, upper_color, color_tolerance):
     # Konvertiere das Bild von BGR zu HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     
@@ -142,7 +142,8 @@ def mark_ball_in_color(frame, lower_color, upper_color,min_radius, color_toleran
             #371.89569091796875 und r= 79
             #426.7767333984375 und r= 91
             
-            if radius > (10+56/234*y-18) * 0.9 and  radius < (10+56/234*y-18) * 1.1:
+            if radius > 6 and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3:
+
                 print(str(y) + " und r= " + str(radius))
                 # Erzeuge eine Maske für den Kreisbereich
                 mask_circle = np.zeros_like(frame[:, :, 0], dtype="uint8")
@@ -170,13 +171,11 @@ def receive_frame():
     frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(temp_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
     
     """
-    
-    min_radius = 5
     color_tolerance = 50        #darf nicht kleiner als 35 sein
     #blau
-    lower_color = np.array([190/2, 30*255/100, 0*255/100])
-    upper_color = np.array([240/2, 100*255/100, 100*255/100])
-    frame = mark_ball_in_color(frame, lower_color, upper_color, min_radius, color_tolerance)
+    lower_color = np.array([190/2, 30*255/100, 25*255/100])
+    upper_color = np.array([320/2, 90*255/100, 60*255/100])
+    frame = mark_ball_in_color(frame, lower_color, upper_color, color_tolerance)
     
 
     #"""
