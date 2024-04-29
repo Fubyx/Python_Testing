@@ -21,7 +21,7 @@ class Autopilot:
         
         ballFound = False
 
-        while not self.stopped and not ballFound:
+        while (not self.stopped) and (not ballFound):
             ball = self.imProcessing.getBallCoords(frame)
             print (ball)
             if (len(ball) > 0):
@@ -35,7 +35,7 @@ class Autopilot:
                 self.turn(100, 100)
             time.sleep(1)
             print('slept')
-            
+
     def catchBall(self, frame):
         return
     
