@@ -111,7 +111,7 @@ class ImageProcessing():
     #Farbe für den Ball setzen
     def setBallColor(self, color): # Color string
         self.currentBallColor = color
-        # Farben Stand 12.04. 10:41
+        # Farben Stand 29.04 12:15
         if(self.lightlevel == 1):
             match(color):
                 case "blue":
@@ -121,7 +121,6 @@ class ImageProcessing():
                     self.ball_lowercolor = np.array([320/2, 30*255/100, 50*255/100])
                     self.ball_uppercolor = np.array([330/2, 50*255/100, 90*255/100])
                 case "orange":
-                    #Todo: Werte anpassen
                     self.ball_lowercolor = np.array([355/2, 50*255/100, 70*255/100])
                     self.ball_uppercolor = np.array([359/2, 100*255/100, 100*255/100])
                     self.ball_lowercolor_2 = np.array([0/2, 50*255/100, 70*255/100])
@@ -136,58 +135,55 @@ class ImageProcessing():
                     self.ball_uppercolor = np.array([80/2, 90*255/100, 90*255/100])
         else:
             match(color):
-                case "red":
-                    self.ball_lowercolor = np.array([230/2, 20*255/100, 20*255/100])
-                    self.ball_uppercolor = np.array([359/2, 80*255/100, 80*255/100])
-        
                 case "blue":
                     self.ball_lowercolor = np.array([210/2, 30*255/100, 10*255/100])
                     self.ball_uppercolor = np.array([240/2, 100*255/100, 70*255/100])
-
-                case "orange":
-                    #Todo: Werte anpassen
-                    self.ball_lowercolor = np.array([0/2, 40*255/100, 60*255/100])
-                    self.ball_uppercolor = np.array([30/2, 100*255/100, 100*255/100])
-        
-                case "yellow":
-                    self.ball_lowercolor = np.array([65/2, 40*255/100, 60*255/100])
-                    self.ball_uppercolor = np.array([80/2, 90*255/100, 90*255/100])
-
                 case "pink":
                     self.ball_lowercolor = np.array([290/2, 30*255/100, 20*255/100])
                     self.ball_uppercolor = np.array([320/2, 50*255/100, 100*255/100])
+                case "orange":
+                    self.ball_lowercolor = np.array([0/2, 40*255/100, 60*255/100])
+                    self.ball_uppercolor = np.array([30/2, 100*255/100, 100*255/100])
+                case "red":
+                    self.ball_lowercolor = np.array([230/2, 20*255/100, 20*255/100])
+                    self.ball_uppercolor = np.array([359/2, 80*255/100, 80*255/100])
+                case "yellow":
+                    self.ball_lowercolor = np.array([65/2, 10*255/100, 60*255/100])
+                    self.ball_uppercolor = np.array([80/2, 100*255/100, 100*255/100])
+
         
     #Farbe für das Ziel setzen
     def setTargetColor(self, color):
         self.currentTargetColor = color
         if (self.lightlevel == 1):
             match color:
-                case "red":
-                    self.target_lowercolor = np.array([340/2, 60*255/100, 40*255/100])
-                    self.target_uppercolor = np.array([359/2, 80*255/100, 100*255/100])
                 case "blue":
-                    pass
+                    self.target_lowercolor = np.array([190/2, 70*255/100, 70*255/100])
+                    self.target_uppercolor = np.array([205/2, 100*255/100, 100*255/100])
+                case "red":
+                    self.target_lowercolor = np.array([5/2, 70*255/100, 70*255/100])
+                    self.target_uppercolor = np.array([20/2, 100*255/100, 100*255/100])
+                
                 case "green":
-                    pass
+                    self.target_lowercolor = np.array([105/2, 30*255/100, 65*255/100])
+                    self.target_uppercolor = np.array([120/2, 50*255/100, 80*255/100])
                 case "yellow":
-                    pass
+                    self.target_lowercolor = np.array([50/2, 80*255/100, 80*255/100])
+                    self.target_uppercolor = np.array([65/2, 100*255/100, 100*255/100])
         else:
             match color:
-                case "red":
-                    self.target_lowercolor = np.array([340/2, 60*255/100, 40*255/100])
-                    self.target_uppercolor = np.array([359/2, 80*255/100, 100*255/100])
-
-                case "blue":
-                    self.target_lowercolor = np.array([175/2, 80*255/100, 30*255/100])
-                    self.target_uppercolor = np.array([230/2, 100*255/100, 100*255/100])
-
                 case "green":
                     self.target_lowercolor = np.array([100/2, 30*255/100, 30*255/100])
                     self.target_uppercolor = np.array([140/2, 60*255/100, 100*255/100])
-
                 case "yellow":
                     self.target_lowercolor = np.array([55/2, 50*255/100, 30*255/100])
                     self.target_uppercolor = np.array([75/2, 100*255/100, 100*255/100])
+                case "blue":
+                    self.target_lowercolor = np.array([175/2, 80*255/100, 30*255/100])
+                    self.target_uppercolor = np.array([230/2, 100*255/100, 100*255/100])
+                case "red":
+                    self.target_lowercolor = np.array([340/2, 60*255/100, 40*255/100])
+                    self.target_uppercolor = np.array([359/2, 80*255/100, 100*255/100])
 
     def setLightLevel(self, lightlevel):
         self.lightlevel = lightlevel
