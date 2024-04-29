@@ -4,7 +4,6 @@ import threading
 import numpy as np
 import requests
 from autopilot import Autopilot
-from imageProcessing import ImageProcessing
 import time
 
 app = Flask(__name__)
@@ -16,10 +15,10 @@ log.setLevel(logging.ERROR)
 
 frame = None  # Global variable to store the latest frame
 image_data = None
-PI_URL = "http://10.11.121.93:5000/controls"
+PI_URL = "http://192.168.86.30:5000/controls"
+
 ballColor = "blue"
 
-imProcessing = ImageProcessing()
 
 def display_frame(): # not needed in production
     global frame
@@ -34,34 +33,27 @@ threading.Thread(target=display_frame, daemon=True).start()  # Start display thr
 autopilot = Autopilot(PI_URL=PI_URL)
 def autoControl(): #still pseudocode
     global autopilot
-    global imProcessing
     global frame
-    global ballColor
-    imProcessing.setModeToBall()
-    imProcessing.setBallColor(ballColor)
 
-    ballFound = False
+    autopilot.setBallColor(ballColor)
+    autopilot.findBall(frame)
+
+    
     ballx = None
     bally = None
-    height = None
-    width = None
+    height = 480
+    width = 640
     someconstant = 0.1
-    while not autopilot.stopped and not ballFound:
-        ball = imProcessing.getBallCoords(frame)
-        
-        print (ball)
+    
+    ballCaught = False
+    return
+    while not autopilot.stopped and not ballCaught:
+        ball = autopilot.imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
-            height, width, channels = frame.shape 
-            ballFound = True
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
-            print(f"x: {ballx}, y: {bally}")
-            noball = False
         else:
-            autopilot.turn(100, 100)
-        time.sleep(1)
-    ballCaught = False
-    while not autopilot.stopped and not ballCaught:
+            noball = True
         if ballx < 0.4:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
         elif ballx > 0.6:
@@ -76,12 +68,7 @@ def autoControl(): #still pseudocode
                 autopilot.forward(200, 50)
                 autopilot.setDoorState(False)
                 ballCaught = True
-        ball = imProcessing.getBallCoords(frame)
-        if (len(ball) > 0):
-            ballx = ball[0][0]/width
-            bally = ball[0][1]/height
-        else:
-            noball = True
+        
 
     """
     goalFound = False
@@ -155,8 +142,7 @@ def mark_ball_in_color(frame, lower_color, upper_color,min_radius, color_toleran
             #371.89569091796875 und r= 79
             #426.7767333984375 und r= 91
             
-            # Überprüfe, ob der Radius größer als der Mindestradius ist
-            if radius > min_radius:
+            if radius > (10+56/234*y-18) * 0.9 and  radius < (10+56/234*y-18) * 1.1:
                 print(str(y) + " und r= " + str(radius))
                 # Erzeuge eine Maske für den Kreisbereich
                 mask_circle = np.zeros_like(frame[:, :, 0], dtype="uint8")
@@ -208,19 +194,18 @@ def img():
 @app.route('/controls', methods=['POST'])
 def controls():
     global autopilot
-    global ballColor
     data = request.get_json(True)
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     lightsState = data["lightsState"]
     doorState = data["doorState"]
     enableAutopilot = data["autopilot"]
-    ballColor = data["ballColor"]
+    autopilot.setBallColor(data["ballColor"])
     try:
         
         if enableAutopilot:
             autopilot.stopped = False
-            threading.Thread(target=autoControl, daemon=True).start()
+            threading.Thread(target=autoControl, daemon=False).start()
             return Response("success")
         
         autopilot.stopped = True
