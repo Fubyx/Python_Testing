@@ -10,6 +10,12 @@ class Autopilot:
 
     ballColor = "blue"
 
+    distanceFrontLeft = 100
+    distanceFrontRight = 100
+    distanceLeft = 100
+    distanceRight = 100
+    distanceBack = 100
+
     def __init__(self, PI_URL) -> None:
         self.PI_URL = PI_URL
         

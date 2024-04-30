@@ -211,6 +211,23 @@ def img():
     global image_data
     return Response(image_data, mimetype='image/jpg')
 
+@app.route('/distanceData', methods=['POST'])
+def distanceData():
+    global autopilot
+    data = request.get_json(True)
+    autopilot.distanceFrontLeft = data["distanceFrontLeft"]
+    autopilot.distanceFrontRight= data["distanceFrontRight"]
+    autopilot.distanceLeft      = data["distanceLeft"]
+    autopilot.distanceRight     = data["distanceRight"]
+    autopilot.distanceBack      = data["distanceBack"]
+    print(
+        'autopilot.distanceFrontLeft '+autopilot.distanceFrontLeft +'\n'
+        'autopilot.distanceFrontRight'+autopilot.distanceFrontRight+'\n'
+        'autopilot.distanceLeft      '+autopilot.distanceLeft      +'\n'
+        'autopilot.distanceRight     '+autopilot.distanceRight     +'\n'
+        'autopilot.distanceBack      '+autopilot.distanceBack      +'\n'
+    )
+    return Response("success")
 
 @app.route('/controls', methods=['POST'])
 def controls():
