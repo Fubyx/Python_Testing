@@ -20,6 +20,15 @@
             <div>Speed: <span id="speed"> </span> %</div>
             <div>Angle: <span id="angle"> </span></div>
         </div>
+        <div class="valueLits">
+            <div>Distance left: <span id="distance_left"> </span></div>
+            <div>Distance right: <span id="distance_right"> </span></div>
+            <div>Distance back: <span id="distance_back"> </span> </div>
+            <div>Distance left headlight: <span id="distance_front_left"> </span></div>
+            <div>Distance right headlight: <span id="distance_front_right"> </span></div>
+            <div>Brightness: <span id="brightness"> </span></div>
+
+        </div>
         <div>
             Color of the ball
             <select id="ballColor">
@@ -66,6 +75,7 @@
     <script>
         let imgSrc = "http://192.168.86.51:8080/img";
         let controlSrc = "http://192.168.86.51:8080/controls";
+        let piDataSrc = "http://192.168.86.51:8080/pidata";
 
 
         var canvas, ctx;
@@ -229,6 +239,30 @@
             }
         }
 
+        function getPiData() {
+            const distanceLeftSpan = document.getElementById('distance_left');
+            const distanceRightSpan = document.getElementById('distance_right');
+            const distanceBackSpan = document.getElementById('distance_back');
+            const distanceFrontLeftSpan = document.getElementById('distance_front_left');
+            const distanceFrontRightSpan = document.getElementById('distance_front_right');
+            const brightnessSpan = document.getElementById('brightness');
+
+            fetch(piDataSrc)
+                .then(response => response.json()) // Parse the JSON response
+                .then(data => {
+                    // Update the spans with the corresponding data from the JSON object
+                    distanceLeftSpan.textContent = data.distanceLeft;
+                    distanceRightSpan.textContent = data.distanceRight;
+                    distanceBackSpan.textContent = data.distanceBack;
+                    distanceFrontLeftSpan.textContent = data.distanceFrontLeft;
+                    distanceFrontRightSpan.textContent = data.distanceFrontRight;
+                    brightnessSpan.textContent = data.brightness;
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    // Handle errors, like displaying an error message
+                });
+        }
 
         function sendData() {
             let x_direction = -1;
@@ -250,7 +284,7 @@
                         ', "lightsState" : ' + document.getElementById("lightsState").checked +
                         ', "doorState" :' + document.getElementById("doorState").checked +
                         ', "autopilot" :' + document.getElementById("autopilotState").checked +
-                        ', "ballColor" : "' + document.getElementById("ballColor").value + '"' + 
+                        ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
                         '}',
                     headers: {
                         'Content-Type': 'text/plain'
@@ -265,6 +299,8 @@
         }
         //window.setInterval(sendData, 200);
         window.setInterval(updateImage, 50);
+        window.setInterval(getPiData, 100);
+
 
     </script>
 </body>

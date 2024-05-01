@@ -19,7 +19,6 @@ image_data = None
 PI_URL = "http://192.168.86.30:5000/controls"
 
 average_brightness = 100
-ballColor = "blue"
 imProcessing = ImageProcessing()
 
 
@@ -28,12 +27,10 @@ def autoControl(): #still pseudocode
     global autopilot
     global frame
     global imProcessing
-    global ballColor
 
     autopilot.setLightsState(1)
-    autopilot.setBallColor(ballColor)
     imProcessing.setModeToBall()
-    imProcessing.setBallColor(ballColor)
+    imProcessing.setBallColor(autopilot.ballColor)
         
     ballx = None
     bally = None
@@ -130,7 +127,7 @@ def receive_frame():
     average_brightness = np.mean(gray_image)
     print(average_brightness)
     #for testing on PC
-    #"""
+    """
     imProcessing.setModeToBall()
     imProcessing.setBallColor("blue")
     imProcessing.getBallCoords(frame)
@@ -161,17 +158,30 @@ def distanceData():
     )
     return Response("success")
 
+@app.route('/pidata', methods=['GET'])
+def getPiData():
+    global autopilot
+    global average_brightness
+    return Response(
+        '{' +
+        '"distanceFrontLeft" :'+str(autopilot.distanceFrontLeft )+',\n'
+        '"distanceFrontRight":'+str(autopilot.distanceFrontRight)+',\n'
+        '"distanceLeft"      :'+str(autopilot.distanceLeft      )+',\n'
+        '"distanceRight"     :'+str(autopilot.distanceRight     )+',\n'
+        '"distanceBack"      :'+str(autopilot.distanceBack      )+',\n'
+        '"brightness"        :'+str(average_brightness          )+'}'
+    )
+
 @app.route('/controls', methods=['POST'])
 def controls():
     global autopilot
-    global ballColor
     data = request.get_json(True)
     verticalSpeed = data["verticalSpeed"]
     rotationalSpeed = data["rotationalSpeed"]
     lightsState = data["lightsState"]
     doorState = data["doorState"]
     enableAutopilot = data["autopilot"]
-    ballColor = data["ballColor"]
+    autopilot.setBallColor(data["ballColor"])
     try:
         
         if enableAutopilot:
