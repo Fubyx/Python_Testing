@@ -2,9 +2,8 @@ import requests  # Import requests library
 import RPi.GPIO as GPIO
 import time
 
-
-from gpiozero import DistanceSensor
 """
+from gpiozero import DistanceSensor
 FRONT_LEFT = DistanceSensor(echo=8, trigger=9)
 FRONT_RIGHT = DistanceSensor(echo=7, trigger=9)
 LEFT = DistanceSensor(echo=12, trigger=9)

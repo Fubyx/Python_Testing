@@ -23,8 +23,9 @@ class ImageProcessing():
         # edited on light level change
         self.currentBallColor = None
         self.currentTargetColor = None
-        self.mask_circle = None
 
+        # For opening the stream locally
+        self.masked_frame = None
         self.cont = None
         threading.Thread(target=self.display_frame, daemon=True).start()  # Start display thread
 
@@ -32,9 +33,10 @@ class ImageProcessing():
 
     def display_frame(self): # not needed in production
         while True:
-            if self.cont is not None and self.mask_circle is not None:
-                cv2.imshow('hsv Stream', self.cont)
-                cv2.imshow('mask Stream', self.mask_circle)
+            if self.frame is not None and self.cont is not None and self.masked_frame is not None:
+                cv2.imshow('frame Stream', self.frame)
+                cv2.imshow('contour Stream', self.cont)
+                cv2.imshow('mask Stream', self.masked_frame)
                 if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
                     break
 
@@ -51,10 +53,9 @@ class ImageProcessing():
         return mask
 
     def getContours(self, img):
+        
+        img = cv2.GaussianBlur(img, (15, 15), 0)
         self.cont = img
-
-
-
 
         contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         #cv2.imshow('Camera Stream', contours)
@@ -84,8 +85,8 @@ class ImageProcessing():
                     # Zeichne den Kreis, wenn die Farbe konsistent ist
                     # cv2.circle(self.frame, (int(x), int(y)), radius, (0, 255, 0), 2)
                     circles.append((x, y, radius))
-        if (mask_circle is not None):
-            self.mask_circle = masked_frame
+        if (masked_frame is not None):
+            self.masked_frame = masked_frame
         return circles
     
     def getBallCoords(self, frame, check_interval=20, consistency_threshold=0.2):
