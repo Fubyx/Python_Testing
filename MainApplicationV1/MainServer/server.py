@@ -38,6 +38,7 @@ def autoControl(): #still pseudocode
     global imProcessing
     global ballColor
 
+    autopilot.setLightsState(1)
     autopilot.setBallColor(ballColor)
     imProcessing.setModeToBall()
     imProcessing.setBallColor(ballColor)
@@ -186,6 +187,7 @@ def mark_ball_in_color(frame, lower_color, upper_color, color_tolerance):
 def receive_frame():
     global frame
     global image_data
+    global imProcessing
     if 'image' not in request.files:
         return jsonify({'error': 'Missing image data'}), 400
 
@@ -203,6 +205,13 @@ def receive_frame():
     #"""
     #frame = detect_objects(frame)
     image_data = cv2.imencode(".jpg", frame)[1].tobytes()
+
+
+
+    imProcessing.setModeToBall()
+    imProcessing.setBallColor("blue")
+    imProcessing.getBallCoords(frame)
+
 
     return jsonify({'message': 'Frame received successfully'}), 200
 
