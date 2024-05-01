@@ -206,12 +206,12 @@ def receive_frame():
     #frame = detect_objects(frame)
     image_data = cv2.imencode(".jpg", frame)[1].tobytes()
 
-
-
+    #for testing on PC
+    """
     imProcessing.setModeToBall()
     imProcessing.setBallColor("blue")
     imProcessing.getBallCoords(frame)
-
+    #"""
 
     return jsonify({'message': 'Frame received successfully'}), 200
 
