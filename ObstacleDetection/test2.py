@@ -17,12 +17,17 @@ def detect_lines(frame):
   gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
   # Apply edge detection using the Canny edge detector
-  edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-  cv2.imshow("Canny", edges)
+  ksize = 3
+  gX = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=ksize)
+  gY = cv2.Sobel(gray, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=ksize)
+  gX = cv2.convertScaleAbs(gX)
+  gY = cv2.convertScaleAbs(gY)
+  combined = cv2.addWeighted(gX, 0.5, gY, 0.5, 0)
+  cv2.imshow("Combined", combined)
 
   # Apply the Hough Transform to detect lines
-  lines = cv2.HoughLinesP(edges, rho=1, theta=np.pi/180, threshold=100,
-                         minLineLength=0, maxLineGap=100)
+  lines = cv2.HoughLinesP(combined, rho=1, theta=np.pi/180, threshold=100,
+                         minLineLength=50, maxLineGap=30)
 
   # Extract starting and end points of detected lines
   detected_lines = []
