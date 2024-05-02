@@ -73,7 +73,7 @@ class ImageProcessing():
 
     def getContours(self, img):
         
-        img = cv2.GaussianBlur(img, (15, 15), 0)
+        #img = cv2.GaussianBlur(img, (15, 15), 0)
         self.cont = img
 
         contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -92,7 +92,7 @@ class ImageProcessing():
                 # Erzeuge eine Maske für den Kreisbereich
                 mask_circle = np.zeros_like(self.frame[:, :, 0], dtype="uint8")
                 cv2.circle(mask_circle, (int(x), int(y)), radius, (255, 255, 255), -1)
-
+                
 
 
                 # Wende die Maske an, um die Farbinformationen innerhalb des Kreises zu extrahieren
@@ -105,7 +105,7 @@ class ImageProcessing():
                     # cv2.circle(self.frame, (int(x), int(y)), radius, (0, 255, 0), 2)
                     circles.append((x, y, radius))
         if (masked_frame is not None):
-            self.masked_frame = masked_frame
+            self.masked_frame = mask_circle
         return circles
     
     def getBallCoords(self, frame, check_interval=20, consistency_threshold=0.2):
