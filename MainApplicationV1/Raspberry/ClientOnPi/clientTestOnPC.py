@@ -12,7 +12,8 @@ def capture_and_send_frame():
     while True:
         try:
             ret, im = camera.read()
-            imgencode = cv2.imencode(".jpg", im)[1].tobytes()  # Compress as JPEG
+
+            imgencode = cv2.imencode(".jpg", cv2.cvtColor(im, cv2.COLOR_BGR2RGB))[1].tobytes()  # Compress as JPEG
             response = requests.post(SERVER_URL, files={'image': imgencode})
             response.raise_for_status()  # Raise exception on non-200 status codes
             print(f"Frame sent successfully. Status code: {response.status_code}")
