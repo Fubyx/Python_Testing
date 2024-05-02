@@ -20,11 +20,18 @@ PI_URL = "http://192.168.86.30:5000/controls"
 
 ballColor = "blue"
 imProcessing = ImageProcessing()
+circles = []
 
 def display_frame(): # not needed in production
     global frame
+    global freeze
     while True:
         if frame is not None:
+            #circles = imProcessing.getBallCoords(frame)
+            #if (len(circles) > 0):
+            #    for c in circles:
+            #        cv2.circle(frame, (c[0], c[1]), int(c[2]), (0, 255, 0), 2)
+            #    pass
             cv2.imshow('Camera Stream', frame)
             if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
                 break
@@ -37,6 +44,7 @@ def autoControl(): #still pseudocode
     global frame
     global imProcessing
     global ballColor
+    global circles
 
     autopilot.setBallColor(ballColor)
     imProcessing.setModeToBall()
@@ -51,7 +59,10 @@ def autoControl(): #still pseudocode
     while (not autopilot.stopped) and (not ballFound):
         ball = imProcessing.getBallCoords(frame)
         print (ball)
-        if (len(ball) > 0):
+        #cv2.circle(frame, ball[0][0])
+        #continue
+        if (len(ball) > 0):  
+            circles = ball
             height, width, channels = frame.shape 
             ballFound = True
             ballx = ball[0][0]/width
@@ -59,7 +70,8 @@ def autoControl(): #still pseudocode
             print(f"x: {ballx}, y: {bally}")
             noball = False
         else:
-            autopilot.turn(100, 100)
+            pass
+            #autopilot.turn(100, 100)
         time.sleep(1)
         print('slept')
 
@@ -220,13 +232,12 @@ def distanceData():
     autopilot.distanceLeft      = data["distanceLeft"]
     autopilot.distanceRight     = data["distanceRight"]
     autopilot.distanceBack      = data["distanceBack"]
-    print(
-        'autopilot.distanceFrontLeft '+autopilot.distanceFrontLeft +'\n'
-        'autopilot.distanceFrontRight'+autopilot.distanceFrontRight+'\n'
-        'autopilot.distanceLeft      '+autopilot.distanceLeft      +'\n'
-        'autopilot.distanceRight     '+autopilot.distanceRight     +'\n'
-        'autopilot.distanceBack      '+autopilot.distanceBack      +'\n'
-    )
+    print(f"autopilot.distanceFrontLeft  {autopilot.distanceFrontLeft} \n" +
+           f" autopilot.distanceFrontRight  {autopilot.distanceFrontRight}\n" + 
+           f" autopilot.distanceLeft  {autopilot.distanceLeft}\n" + 
+           f" autopilot.distanceRight  {autopilot.distanceRight}\n" + 
+           f" autopilot.distanceBack  {autopilot.distanceBack}\n" + 
+          "")
     return Response("success")
 
 @app.route('/controls', methods=['POST'])
