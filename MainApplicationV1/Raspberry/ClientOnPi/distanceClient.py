@@ -34,8 +34,8 @@ GPIO.output(TRIG, False)
 time.sleep(1)
 
 # Server details (replace with your server's IP and port)
-SERVER_IP = "192.168.200.51"
-SERVER_PORT = 8080
+SERVER_IP = "192.168.86.51"
+SERVER_PORT = 5000
 SERVER_URL = "http://" + SERVER_IP + ':' + str(SERVER_PORT) + "/distanceData"
 
 def read(pin):
@@ -43,14 +43,14 @@ def read(pin):
     time.sleep(0.00001)
     GPIO.output(TRIG, False)
 
-    pulse_start = 0
-    pulse_end = 0
-
     while GPIO.input(pin)==0:
-        pulse_start = time.time()
+        pass
+    pulse_start = time.time()
+    print('aft')
     while GPIO.input(pin)==1:
-        pulse_end = time.time()  
-
+        pass
+    pulse_end = time.time()  
+    print('aftaft')
     pulse_duration = pulse_end - pulse_start
     return round(pulse_duration * 17150, 2) # in cm
 
@@ -60,13 +60,13 @@ def capture_and_send_data():
 
             distanceFrontLeft = read(ECHO_FRONT_LEFT)
             time.sleep(0.01)
-            distanceFrontRight = 3#read(ECHO_FRONT_RIGHT)
+            distanceFrontRight = read(ECHO_FRONT_RIGHT)
             time.sleep(0.01)
-            distanceLeft = 3#read(ECHO_LEFT)
+            distanceLeft = read(ECHO_LEFT)
             time.sleep(0.01)
-            distanceRight = 3#read(ECHO_RIGHT)
+            distanceRight = read(ECHO_RIGHT)
             time.sleep(0.01)
-            distanceBack = 3#read(ECHO_BACK)
+            distanceBack = read(ECHO_BACK)
 
             response = requests.post(SERVER_URL, json={'distanceFrontLeft' : distanceFrontLeft, 'distanceFrontRight' : distanceFrontRight, 'distanceLeft' : distanceLeft, 'distanceRight' : distanceRight, 'distanceBack' : distanceBack})
 

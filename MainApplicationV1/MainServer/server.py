@@ -27,7 +27,8 @@ autopilot = Autopilot()
 @app.route('/setpiurl')
 def setPiUrl():
     global autopilot
-    autopilot.pi_URL = request.remote_addr
+    autopilot.pi_URL = "http://" + request.remote_addr + ":5000/controls"
+    print(autopilot.pi_URL)
     return Response('success')
 
 def autoControl(): #still pseudocode
@@ -136,7 +137,7 @@ def receive_frame():
     gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # Calculate the mean of the grayscale image
     average_brightness = np.mean(gray_image)
-    print(average_brightness)
+    average_brightness = round(average_brightness, 2)
     #for testing on PC
     """
     imProcessing.setModeToBall()
@@ -161,11 +162,12 @@ def distanceData():
     autopilot.distanceRight     = data["distanceRight"]
     autopilot.distanceBack      = data["distanceBack"]
     print(
-        'autopilot.distanceFrontLeft '+autopilot.distanceFrontLeft +'\n'
-        'autopilot.distanceFrontRight'+autopilot.distanceFrontRight+'\n'
-        'autopilot.distanceLeft      '+autopilot.distanceLeft      +'\n'
-        'autopilot.distanceRight     '+autopilot.distanceRight     +'\n'
-        'autopilot.distanceBack      '+autopilot.distanceBack      +'\n'
+
+        'autopilot.distanceFrontLeft '+str(autopilot.distanceFrontLeft) +'\n'
+        'autopilot.distanceFrontRight'+str(autopilot.distanceFrontRight)+'\n'
+        'autopilot.distanceLeft      '+str(autopilot.distanceLeft)      +'\n'
+        'autopilot.distanceRight     '+str(autopilot.distanceRight)     +'\n'
+        'autopilot.distanceBack      '+str(autopilot.distanceBack)      +'\n'
     )
     return Response("success")
 
@@ -190,7 +192,6 @@ def controls():
     enableAutopilot = data["autopilot"]
     autopilot.setBallColor(data["ballColor"])
     try:
-        
         if enableAutopilot:
             autopilot.stopped = False
             threading.Thread(target=autoControl, daemon=False).start()

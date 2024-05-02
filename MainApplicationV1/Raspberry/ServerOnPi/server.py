@@ -28,7 +28,7 @@ def controls():
     return Response("success") # return things such as data from distance sensors
 
 
-SERVER_URL = "http://10.10.31.11:5000/setpiurl"
+SERVER_URL = "http://192.168.86.51:5000/setpiurl"
 response = requests.get(SERVER_URL)
 try:
     response.raise_for_status()  # Raise exception on non-200 status codes
