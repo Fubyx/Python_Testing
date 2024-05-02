@@ -16,15 +16,24 @@ log.setLevel(logging.ERROR)
 
 frame = None  # Global variable to store the latest frame
 image_data = None
-PI_URL = "http://192.168.86.30:5000/controls"
 
-ballColor = "blue"
+#fabians hotspot pi_URL: "http://192.168.86.30:5000/controls" 
+
+average_brightness = 100
 imProcessing = ImageProcessing()
 circles = []
 
+autopilot = Autopilot()
+
+@app.route('/setpiurl')
+def setPiUrl():
+    global autopilot
+    autopilot.pi_URL = "http://" + request.remote_addr + ":5000/controls"
+    print(autopilot.pi_URL)
+    return Response('success')
+
 def display_frame(): # not needed in production
     global frame
-    global freeze
     while True:
         if frame is not None:
             #circles = imProcessing.getBallCoords(frame)
@@ -38,17 +47,19 @@ def display_frame(): # not needed in production
 
 threading.Thread(target=display_frame, daemon=True).start()  # Start display thread
 
-autopilot = Autopilot(PI_URL=PI_URL)
+autopilot = Autopilot()
 def autoControl(): #still pseudocode
     global autopilot
     global frame
     global imProcessing
-    global ballColor
     global circles
 
-    autopilot.setBallColor(ballColor)
+    if (frame is None):
+        return
+
+    autopilot.setLightsState(1)
     imProcessing.setModeToBall()
-    imProcessing.setBallColor(ballColor)
+    imProcessing.setBallColor(autopilot.ballColor)
         
     ballx = None
     bally = None
@@ -59,54 +70,52 @@ def autoControl(): #still pseudocode
     while (not autopilot.stopped) and (not ballFound):
         ball = imProcessing.getBallCoords(frame)
         print (ball)
-        #cv2.circle(frame, ball[0][0])
-        #continue
         if (len(ball) > 0):  
             circles = ball
-            height, width, channels = frame.shape 
             ballFound = True
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
             print(f"x: {ballx}, y: {bally}")
-            noball = False
+            ballFound = True
+
         else:
-            pass
-            #autopilot.turn(100, 100)
-        time.sleep(1)
-        print('slept')
+            autopilot.turn(100, 100)
+        time.sleep(1) # to let the camera capture not blurry images
 
     
     
-    someconstant = 0.1
+    someconstant = 50
     
     ballCaught = False
-    return
-    while not autopilot.stopped and not ballCaught:
-        ball = autopilot.imProcessing.getBallCoords(frame)
+    noBallCounter = 0
+    while (not autopilot.stopped) and (not ballCaught):
+        ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
+            noBallCounter = 0
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
         else:
-            noball = True
+            noBallCounter+=1
         if ballx < 0.4:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
         elif ballx > 0.6:
-            autopilot.turn((ballx-0.5) * someconstant, 100)
+            autopilot.turn((ballx-0.5) * someconstant, -100)
         else:
             if bally > 0.5:
                 autopilot.forward(100, 100)
             elif (bally > 0.8):
-                autopilot.forward(50, 50)
-            elif (noball):
+                autopilot.forward(100, 70)
+            elif (noBallCounter > 5):
                 autopilot.setDoorState(True)
                 autopilot.forward(200, 50)
                 autopilot.setDoorState(False)
                 ballCaught = True
+        time.sleep(1)
         
 
     """
     goalFound = False
-    while not autopilot.stopped and not ballFound:
+    while (not autopilot.stopped) and (not ballFound):
         if (goalInImage):
             goalFound = True
         else:
@@ -128,93 +137,32 @@ def autoControl(): #still pseudocode
                 inFrontOfGoal = True
     #"""
 
-def mark_ball_in_color(frame, lower_color, upper_color, color_tolerance):
-    # Konvertiere das Bild von BGR zu HSV
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    
-    # Erzeuge einen Maskenbereich für die angegebene Farbe
-    mask = cv2.inRange(hsv, lower_color, upper_color)
-
-    cv2.imshow("Farbe", mask)
-
-    """
-    #Apply Gradient
-    ksize = 3
-    gX = cv2.Sobel(mask, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=ksize)
-    gY = cv2.Sobel(mask, ddepth=cv2.CV_32F, dx=0, dy=1, ksize=ksize)
-    gX = cv2.convertScaleAbs(gX)
-    gY = cv2.convertScaleAbs(gY)
-    combined = cv2.addWeighted(gX, 0.5, gY, 0.5, 0)
-    cv2.imshow("Combined", combined)
-    
-    
-
-    circles = cv2.HoughCircles(edges, cv2.HOUGH_GRADIENT, 1, 50, param1=90, param2=30, minRadius=10, maxRadius=300)
-    if circles is not None:
-        circles = np.round(circles[0, :]).astype("int")
-        for (x, y, r) in circles: 
-            if r > 10:
-                cv2.circle(frame, (x, y), r, (0, 0, 255), 2)
-    """
-    edges = cv2.Canny(mask, 50, 150, apertureSize=3)
-    cv2.imshow("Canny", edges)
-
-    # Finde Konturen im Maskenbereich
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-
-    for contour in contours:
-            # Berechne das Zentrum und den Radius des Balls
-            (x, y), radius = cv2.minEnclosingCircle(contour)
-            radius = int(radius)
-
-
-            #59.041175842285156 und r= 6
-            #65.85074615478516 und r= 8
-            #87.98148345947266 und r= 13
-            #138.0 und r= 23
-            #371.89569091796875 und r= 79
-            #426.7767333984375 und r= 91
-            
-            if radius > 6 and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3:
-
-                print(str(y) + " und r= " + str(radius))
-                # Erzeuge eine Maske für den Kreisbereich
-                mask_circle = np.zeros_like(frame[:, :, 0], dtype="uint8")
-                cv2.circle(mask_circle, (int(x), int(y)), radius, (255, 255, 255), -1)
-
-                # Wende die Maske an, um die Farbinformationen innerhalb des Kreises zu extrahieren
-                masked_frame = cv2.bitwise_and(frame, frame, mask=mask_circle)
-
-                # Überprüfe die Farbkonsistenz anhand der Standardabweichung
-                color_variance = np.std(masked_frame[mask_circle == 255], axis=0)
-                if np.all(color_variance < color_tolerance):
-                    # Zeichne den Kreis, wenn die Farbe konsistent ist
-                    cv2.circle(frame, (int(x), int(y)), radius, (0, 255, 0), 2)
-
-    return frame
-
 @app.route('/receive_frame', methods=['POST'])
 def receive_frame():
     global frame
     global image_data
+    global imProcessing
+    global average_brightness
     if 'image' not in request.files:
         return jsonify({'error': 'Missing image data'}), 400
 
     temp_data = request.files['image'].read()
     frame = cv2.cvtColor(cv2.imdecode(np.frombuffer(temp_data, np.uint8), cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
     
-    """
-    color_tolerance = 50        #darf nicht kleiner als 35 sein
-    #blau
-    lower_color = np.array([190/2, 30*255/100, 25*255/100])
-    upper_color = np.array([320/2, 90*255/100, 60*255/100])
-    frame = mark_ball_in_color(frame, lower_color, upper_color, color_tolerance)
-    
-
-    #"""
     #frame = detect_objects(frame)
     image_data = cv2.imencode(".jpg", frame)[1].tobytes()
+
+    # Convert the image to grayscale
+    gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # Calculate the mean of the grayscale image
+    average_brightness = np.mean(gray_image)
+    average_brightness = round(average_brightness, 2)
+    #for testing on PC
+    """
+    imProcessing.setModeToBall()
+    imProcessing.setBallColor("blue")
+    imProcessing.getBallCoords(frame)
+    #"""
 
     return jsonify({'message': 'Frame received successfully'}), 200
 
@@ -238,33 +186,47 @@ def distanceData():
            f" autopilot.distanceRight  {autopilot.distanceRight}\n" + 
            f" autopilot.distanceBack  {autopilot.distanceBack}\n" + 
           "")
+    
     return Response("success")
+
+@app.route('/pidata', methods=['GET'])
+def getPiData():
+    global autopilot
+    global average_brightness
+    return Response(
+        '{' +
+        '"distanceFrontLeft" :'+str(autopilot.distanceFrontLeft )+',\n'
+        '"distanceFrontRight":'+str(autopilot.distanceFrontRight)+',\n'
+        '"distanceLeft"      :'+str(autopilot.distanceLeft      )+',\n'
+        '"distanceRight"     :'+str(autopilot.distanceRight     )+',\n'
+        '"distanceBack"      :'+str(autopilot.distanceBack      )+',\n'
+        '"brightness"        :'+str(average_brightness          )+'}'
+    )
 
 @app.route('/controls', methods=['POST'])
 def controls():
     global autopilot
-    global ballColor
     data = request.get_json(True)
-    verticalSpeed = data["verticalSpeed"]
-    rotationalSpeed = data["rotationalSpeed"]
-    lightsState = data["lightsState"]
-    doorState = data["doorState"]
     enableAutopilot = data["autopilot"]
-    ballColor = data["ballColor"]
+    autopilot.setBallColor(data["ballColor"])
     try:
-        
         if enableAutopilot:
             autopilot.stopped = False
             threading.Thread(target=autoControl, daemon=False).start()
             return Response("success")
         
+        verticalSpeed = data["verticalSpeed"]
+        rotationalSpeed = data["rotationalSpeed"]
+        autopilot.lights = data["lightsState"]
+        autopilot.doorState = data["doorState"]
         autopilot.stopped = True
-        response = requests.post(PI_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': lightsState, 'doorState':doorState})
-        try:
-            response.raise_for_status()  # Raise exception on non-200 status codes
-            #print(f"sent successfully. Status code: {response.status_code}")
-        except:
-            print("sending failed")
+        if (autopilot.pi_URL is not None):
+            response = requests.post(autopilot.pi_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': autopilot.lights, 'doorState': autopilot.doorState})
+            try:
+                response.raise_for_status()  # Raise exception on non-200 status codes
+                #print(f"sent successfully. Status code: {response.status_code}")
+            except:
+                print("sending failed")
         
         return Response("success")
     except Exception as e:
@@ -277,4 +239,4 @@ def add_header(response):
     return response
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=5000)

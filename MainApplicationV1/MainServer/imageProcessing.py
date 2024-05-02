@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import threading
 import time
 
 class ImageProcessing():
@@ -24,9 +25,44 @@ class ImageProcessing():
         self.currentBallColor = None
         self.currentTargetColor = None
 
+        # For opening the stream locally
+        self.masked_frame = None
+        self.cont = None
+        threading.Thread(target=self.display_frame, daemon=True).start()  # Start display thread
+
+
+
+    def display_frame(self): # not needed in production
+        while True:
+            if self.frame is not None and self.cont is not None and self.masked_frame is not None:
+                cv2.imshow('frame Stream', self.frame)
+                cv2.imshow('contour Stream', self.cont)
+                cv2.imshow('mask Stream', self.masked_frame)
+                if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
+                    break
+
+
+
+        # For opening the stream locally
+        self.masked_frame = None
+        self.cont = None
+        threading.Thread(target=self.display_frame, daemon=True).start()  # Start display thread
+
+
+
+    def display_frame(self): # not needed in production
+        while True:
+            if self.frame is not None and self.cont is not None and self.masked_frame is not None:
+                cv2.imshow('frame Stream', self.frame)
+                cv2.imshow('contour Stream', self.cont)
+                cv2.imshow('mask Stream', self.masked_frame)
+                if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
+                    break
+
+
+
     def applyBallColorMask(self):
         hsv = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
-    
         # Erzeuge einen Maskenbereich für die angegebene Farbe
         mask = cv2.inRange(hsv, self.ball_lowercolor, self.ball_uppercolor)
         if self.ball_lowercolor_2 is not None:
@@ -36,21 +72,28 @@ class ImageProcessing():
         return mask
 
     def getContours(self, img):
+        
+        img = cv2.GaussianBlur(img, (15, 15), 0)
+        self.cont = img
+
         contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        #cv2.imshow('Camera Stream', contours)
         return contours
 
     def findCircles(self, contours):
         circles = []
+        masked_frame = None
         for contour in contours:
             # Berechne das Zentrum und den Radius des Balls
             (x, y), radius = cv2.minEnclosingCircle(contour)
             radius = int(radius)
-            
             # Überprüfe, ob der Radius größer als der Mindestradius ist
-            if radius > self.MIN_RADIUS and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3:
+            if radius > self.MIN_RADIUS and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3: #maybe auskommentieren
                 # Erzeuge eine Maske für den Kreisbereich
                 mask_circle = np.zeros_like(self.frame[:, :, 0], dtype="uint8")
                 cv2.circle(mask_circle, (int(x), int(y)), radius, (255, 255, 255), -1)
+
+
 
                 # Wende die Maske an, um die Farbinformationen innerhalb des Kreises zu extrahieren
                 masked_frame = cv2.bitwise_and(self.frame, self.frame, mask=mask_circle)
@@ -61,6 +104,8 @@ class ImageProcessing():
                     # Zeichne den Kreis, wenn die Farbe konsistent ist
                     # cv2.circle(self.frame, (int(x), int(y)), radius, (0, 255, 0), 2)
                     circles.append((x, y, radius))
+        if (masked_frame is not None):
+            self.masked_frame = masked_frame
         return circles
     
     def getBallCoords(self, frame, check_interval=20, consistency_threshold=0.2):
@@ -95,7 +140,7 @@ class ImageProcessing():
 
         # Print or utilize the detected consistent circles (consistent_circles list)
         if len(consistent_circles) > 0:
-            print("Consistent circles found!")
+            print("Consistent circles: " + str(consistent_circles))
         
         # Reset circle history for next frame
         circle_history = {}
@@ -200,5 +245,3 @@ class ImageProcessing():
     def getObstacles(self, frame):
         return
 
-
-img = ImageProcessing()
