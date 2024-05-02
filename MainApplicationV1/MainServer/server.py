@@ -16,17 +16,27 @@ log.setLevel(logging.ERROR)
 
 frame = None  # Global variable to store the latest frame
 image_data = None
-PI_URL = "http://192.168.86.30:5000/controls"
+
+#fabians hotspot pi_URL: "http://192.168.86.30:5000/controls" 
 
 average_brightness = 100
 imProcessing = ImageProcessing()
 
+autopilot = Autopilot()
 
-autopilot = Autopilot(PI_URL=PI_URL)
+@app.route('/setpiurl')
+def setPiUrl():
+    global autopilot
+    autopilot.pi_URL = request.remote_addr
+    return Response('success')
+
 def autoControl(): #still pseudocode
     global autopilot
     global frame
     global imProcessing
+
+    if (frame is None):
+        return
 
     autopilot.setLightsState(1)
     imProcessing.setModeToBall()
@@ -42,49 +52,50 @@ def autoControl(): #still pseudocode
         ball = imProcessing.getBallCoords(frame)
         print (ball)
         if (len(ball) > 0):
-            height, width, channels = frame.shape 
             ballFound = True
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
             print(f"x: {ballx}, y: {bally}")
-            noball = False
+            ballFound = True
+
         else:
             autopilot.turn(100, 100)
-        time.sleep(1)
-        print('slept')
+        time.sleep(1) # to let the camera capture not blurry images
 
     
     
-    someconstant = 0.1
+    someconstant = 50
     
     ballCaught = False
-    return
-    while not autopilot.stopped and not ballCaught:
-        ball = autopilot.imProcessing.getBallCoords(frame)
+    noBallCounter = 0
+    while (not autopilot.stopped) and (not ballCaught):
+        ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
+            noBallCounter = 0
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
         else:
-            noball = True
+            noBallCounter+=1
         if ballx < 0.4:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
         elif ballx > 0.6:
-            autopilot.turn((ballx-0.5) * someconstant, 100)
+            autopilot.turn((ballx-0.5) * someconstant, -100)
         else:
             if bally > 0.5:
                 autopilot.forward(100, 100)
             elif (bally > 0.8):
-                autopilot.forward(50, 50)
-            elif (noball):
+                autopilot.forward(100, 70)
+            elif (noBallCounter > 5):
                 autopilot.setDoorState(True)
                 autopilot.forward(200, 50)
                 autopilot.setDoorState(False)
                 ballCaught = True
+        time.sleep(1)
         
 
     """
     goalFound = False
-    while not autopilot.stopped and not ballFound:
+    while (not autopilot.stopped) and (not ballFound):
         if (goalInImage):
             goalFound = True
         else:
@@ -176,10 +187,6 @@ def getPiData():
 def controls():
     global autopilot
     data = request.get_json(True)
-    verticalSpeed = data["verticalSpeed"]
-    rotationalSpeed = data["rotationalSpeed"]
-    lightsState = data["lightsState"]
-    doorState = data["doorState"]
     enableAutopilot = data["autopilot"]
     autopilot.setBallColor(data["ballColor"])
     try:
@@ -189,13 +196,18 @@ def controls():
             threading.Thread(target=autoControl, daemon=False).start()
             return Response("success")
         
+        verticalSpeed = data["verticalSpeed"]
+        rotationalSpeed = data["rotationalSpeed"]
+        autopilot.lights = data["lightsState"]
+        autopilot.doorState = data["doorState"]
         autopilot.stopped = True
-        response = requests.post(PI_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': lightsState, 'doorState':doorState})
-        try:
-            response.raise_for_status()  # Raise exception on non-200 status codes
-            #print(f"sent successfully. Status code: {response.status_code}")
-        except:
-            print("sending failed")
+        if (autopilot.pi_URL is not None):
+            response = requests.post(autopilot.pi_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': autopilot.lights, 'doorState': autopilot.doorState})
+            try:
+                response.raise_for_status()  # Raise exception on non-200 status codes
+                #print(f"sent successfully. Status code: {response.status_code}")
+            except:
+                print("sending failed")
         
         return Response("success")
     except Exception as e:
@@ -208,4 +220,4 @@ def add_header(response):
     return response
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=5000)
