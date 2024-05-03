@@ -50,8 +50,8 @@ def autoControl(): #still pseudocode
     if (frame is None):
         return
 
-    autopilot.setLightsState(1) 
-    imProcessing.setLightLevel(1)
+    autopilot.setLightsState(0) 
+    imProcessing.setLightLevel(0)
     imProcessing.setModeToBall()
     imProcessing.setBallColor(autopilot.ballColor)
         
@@ -76,17 +76,13 @@ def autoControl(): #still pseudocode
     someconstant = 50
     autopilot.setDoorState(True)
     
-    noBallCounter = 0
     while (not autopilot.stopped):
         ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
-            noBallCounter = 0
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
         else:
-        #    noBallCounter+=1
-        #if (noBallCounter > 0):
-            autopilot.forward(200, 50)
+            autopilot.forward(100, 100)
             autopilot.setDoorState(False)
             break
         if ballx < 0.4:
@@ -97,7 +93,7 @@ def autoControl(): #still pseudocode
             if bally < 0.8:
                 autopilot.forward(100, 100)
             elif (bally > 0.8):
-                autopilot.forward(100, 70)
+                autopilot.forward(100, 100)
                 
         time.sleep(1)
         ballx = None
@@ -149,11 +145,11 @@ def receive_frame():
     average_brightness = np.mean(gray_image)
     average_brightness = round(average_brightness, 2)
     if(average_brightness < 50 and not autopilot.lights):
-        autopilot.setLightsState(0)
-        imProcessing.setLightLevel(0)
-    elif(average_brightness > 50 and autopilot.lights):
         autopilot.setLightsState(1)
         imProcessing.setLightLevel(1)
+    elif(average_brightness > 50 and autopilot.lights):
+        autopilot.setLightsState(0)
+        imProcessing.setLightLevel(0)
 
     #for testing on PC
     """

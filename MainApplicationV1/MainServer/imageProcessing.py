@@ -18,7 +18,7 @@ class ImageProcessing():
         self.ball_lowercolor_2 = None
         self.ball_uppercolor_2 = None
 
-        self.lightlevel = None # 0 = Dark; 1 = light
+        self.lightlevel = None # 0 = Light (lights off); 1 = dark (lights on)
 
         # Variable for saving current color strings so that the color can be
         # edited on light level change
@@ -88,7 +88,7 @@ class ImageProcessing():
             (x, y), radius = cv2.minEnclosingCircle(contour)
             radius = int(radius)
             # Überprüfe, ob der Radius größer als der Mindestradius ist
-            if radius > self.MIN_RADIUS and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3: #maybe auskommentieren
+            if radius > self.MIN_RADIUS: #and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3: #maybe auskommentieren
                 # Erzeuge eine Maske für den Kreisbereich
                 mask_circle = np.zeros_like(self.frame[:, :, 0], dtype="uint8")
                 cv2.circle(mask_circle, (int(x), int(y)), radius, (255, 255, 255), -1)
@@ -158,7 +158,7 @@ class ImageProcessing():
     def setBallColor(self, color): # Color string
         self.currentBallColor = color
         # Farben Stand 29.04 12:15
-        if(self.lightlevel == 1):
+        if(self.lightlevel == 0):
             match(color):
                 case "blue":
                     self.ball_lowercolor = np.array([190/2, 30*255/100, 25*255/100])
@@ -201,7 +201,7 @@ class ImageProcessing():
     #Farbe für das Ziel setzen
     def setTargetColor(self, color):
         self.currentTargetColor = color
-        if (self.lightlevel == 1):
+        if (self.lightlevel == 0):
             match color:
                 case "blue":
                     self.target_lowercolor = np.array([190/2, 70*255/100, 70*255/100])

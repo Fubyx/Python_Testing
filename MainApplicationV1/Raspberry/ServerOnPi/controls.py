@@ -20,10 +20,11 @@ class Controls:
     def __init__(self) -> None:
         # Variables used for doorhandling
         self.doorOpen = False
-        self.doorTimer = 0
+        self.doorTimer = 0  
+
         self.leftSpeed = 0
         self.rightSpeed = 0
-        self.lightsState = 2 # 0 = forced off, 1 = forced on, 2 = auto
+        self.lightsState = 0 # 0 = off, 1 = on
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.MOTOR1EN_PIN, GPIO.OUT)
@@ -78,9 +79,7 @@ class Controls:
 
     def changeLighting(self, newState):
         self.lightsState = newState
-        if newState == 2:
-            pass # todo auto (with average light leven in the image on server or smth)
-        elif newState == 0:
+        if newState == 0:
             GPIO.output(self.LIGHT_PIN, GPIO.LOW)
         elif newState == 1:
             GPIO.output(self.LIGHT_PIN, GPIO.HIGH)
