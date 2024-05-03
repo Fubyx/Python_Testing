@@ -34,7 +34,7 @@ GPIO.output(TRIG, False)
 time.sleep(1)
 
 # Server details (replace with your server's IP and port)
-SERVER_IP = "192.168.86.113"
+SERVER_IP = "192.168.86.51"
 SERVER_PORT = 5000
 SERVER_URL = "http://" + SERVER_IP + ':' + str(SERVER_PORT) + "/distanceData"
 
