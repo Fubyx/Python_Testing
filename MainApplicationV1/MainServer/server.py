@@ -21,7 +21,6 @@ image_data = None
 
 average_brightness = 100
 imProcessing = ImageProcessing()
-circles = []
 
 autopilot = Autopilot()
 
@@ -36,11 +35,6 @@ def display_frame(): # not needed in production
     global frame
     while True:
         if frame is not None:
-            #circles = imProcessing.getBallCoords(frame)
-            #if (len(circles) > 0):
-            #    for c in circles:
-            #        cv2.circle(frame, (c[0], c[1]), int(c[2]), (0, 255, 0), 2)
-            #    pass
             cv2.imshow('Camera Stream', frame)
             if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
                 break
@@ -52,12 +46,11 @@ def autoControl(): #still pseudocode
     global autopilot
     global frame
     global imProcessing
-    global circles
 
     if (frame is None):
         return
 
-    autopilot.setLightsState(1)
+    autopilot.setLightsState(1) 
     imProcessing.setModeToBall()
     imProcessing.setBallColor(autopilot.ballColor)
         
@@ -71,8 +64,6 @@ def autoControl(): #still pseudocode
         ball = imProcessing.getBallCoords(frame)
         print (ball)
         if (len(ball) > 0):  
-            circles = ball
-            ballFound = True
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
             print(f"x: {ballx}, y: {bally}")
@@ -82,7 +73,6 @@ def autoControl(): #still pseudocode
             autopilot.turn(100, 100)
         time.sleep(1) # to let the camera capture not blurry images
 
-    
     
     someconstant = 50
     
