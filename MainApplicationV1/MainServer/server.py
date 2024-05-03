@@ -51,6 +51,7 @@ def autoControl(): #still pseudocode
         return
 
     autopilot.setLightsState(1) 
+    imProcessing.setLightLevel(1)
     imProcessing.setModeToBall()
     imProcessing.setBallColor(autopilot.ballColor)
         
@@ -147,6 +148,13 @@ def receive_frame():
     # Calculate the mean of the grayscale image
     average_brightness = np.mean(gray_image)
     average_brightness = round(average_brightness, 2)
+    if(average_brightness < 50 and not autopilot.lights):
+        autopilot.setLightsState(0)
+        imProcessing.setLightLevel(0)
+    elif(average_brightness > 50 and autopilot.lights):
+        autopilot.setLightsState(1)
+        imProcessing.setLightLevel(1)
+
     #for testing on PC
     """
     imProcessing.setModeToBall()
