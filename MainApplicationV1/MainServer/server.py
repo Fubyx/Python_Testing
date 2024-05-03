@@ -56,51 +56,51 @@ def autoControl(): #still pseudocode
         
     ballx = None
     bally = None
+    ball = []
     height = 480
     width = 640
 
-    ballFound = False
-    while (not autopilot.stopped) and (not ballFound):
+    while (not autopilot.stopped):
         ball = imProcessing.getBallCoords(frame)
-        print (ball)
         if (len(ball) > 0):  
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
             print(f"x: {ballx}, y: {bally}")
-            ballFound = True
-
+            break
         else:
             autopilot.turn(100, 100)
         time.sleep(1) # to let the camera capture not blurry images
 
     
     someconstant = 50
+    autopilot.setDoorState(True)
     
-    ballCaught = False
     noBallCounter = 0
-    while (not autopilot.stopped) and (not ballCaught):
+    while (not autopilot.stopped):
         ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
             noBallCounter = 0
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
         else:
-            noBallCounter+=1
+        #    noBallCounter+=1
+        #if (noBallCounter > 0):
+            autopilot.forward(200, 50)
+            autopilot.setDoorState(False)
+            break
         if ballx < 0.4:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
         elif ballx > 0.6:
             autopilot.turn((ballx-0.5) * someconstant, -100)
         else:
-            if bally > 0.5:
+            if bally < 0.8:
                 autopilot.forward(100, 100)
             elif (bally > 0.8):
                 autopilot.forward(100, 70)
-            elif (noBallCounter > 5):
-                autopilot.setDoorState(True)
-                autopilot.forward(200, 50)
-                autopilot.setDoorState(False)
-                ballCaught = True
+                
         time.sleep(1)
+        ballx = None
+        bally = None
         
 
     """
