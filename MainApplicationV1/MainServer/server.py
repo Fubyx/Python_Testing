@@ -31,7 +31,7 @@ def setPiUrl():
     print(autopilot.pi_URL)
     return Response('success')
 
-def autoControl(): #still pseudocode
+def autoControl(): #still partly pseudocode
     global autopilot
     global frame
     global imProcessing
@@ -48,6 +48,8 @@ def autoControl(): #still pseudocode
     height = 480
     width = 640
 
+
+    # searching ball:
     ballFound = False
     while (not autopilot.stopped) and (not ballFound):
         ball = imProcessing.getBallCoords(frame)
