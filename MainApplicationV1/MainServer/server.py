@@ -69,7 +69,7 @@ def autoControl():
             print(f"x: {ballx}, y: {bally}")
             break
         else:
-            autopilot.turn(100, 100)
+            autopilot.turn(300, 100)
         time.sleep(1) # to let the camera capture not blurry images
 
     
@@ -82,18 +82,18 @@ def autoControl():
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
         else:
-            autopilot.forward(100, 100)
+            #autopilot.forward(50, 25)
             autopilot.setDoorState(False)
             break
-        if ballx < 0.4:
+        if ballx < 0.44:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
-        elif ballx > 0.6:
+        elif ballx > 0.55:
             autopilot.turn((ballx-0.5) * someconstant, -100)
         else:
             if bally < 0.8:
-                autopilot.forward(100, 100)
+                autopilot.forward(40, 50)
             elif (bally > 0.8):
-                autopilot.forward(100, 100)
+                autopilot.forward(40, 50)
                 
         time.sleep(1)
         ballx = None
