@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import threading
+import time
 
 class ImageProcessing():
 
@@ -12,12 +13,12 @@ class ImageProcessing():
         self.mode = None # 0 = Balldetection; 1 = TargetDetection
         # Variables for color thresholds; 
         # _2 for orange as its threshold goes from ~350 to ~10
-        self.ball_lowercolor = None
-        self.ball_uppercolor = None
+        self.ball_lowercolor = np.array([190/2, 30*255/100, 25*255/100])
+        self.ball_uppercolor = np.array([235/2, 90*255/100, 60*255/100])
         self.ball_lowercolor_2 = None
         self.ball_uppercolor_2 = None
 
-        self.lightlevel = None # 0 = Dark; 1 = light
+        self.lightlevel = None # 0 = Light (lights off); 1 = dark (lights on)
 
         # Variable for saving current color strings so that the color can be
         # edited on light level change
@@ -42,7 +43,25 @@ class ImageProcessing():
 
 
 
-    def applyColorMask(self):
+        # For opening the stream locally
+        self.masked_frame = None
+        self.cont = None
+        threading.Thread(target=self.display_frame, daemon=True).start()  # Start display thread
+
+
+
+    def display_frame(self): # not needed in production
+        while True:
+            if self.frame is not None and self.cont is not None and self.masked_frame is not None:
+                cv2.imshow('frame Stream', self.frame)
+                cv2.imshow('contour Stream', self.cont)
+                cv2.imshow('mask Stream', self.masked_frame)
+                if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
+                    break
+
+
+
+    def applyBallColorMask(self):
         hsv = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
         # Erzeuge einen Maskenbereich für die angegebene Farbe
         mask = cv2.inRange(hsv, self.ball_lowercolor, self.ball_uppercolor)
@@ -54,7 +73,7 @@ class ImageProcessing():
 
     def getContours(self, img):
         
-        img = cv2.GaussianBlur(img, (15, 15), 0)
+        #img = cv2.GaussianBlur(img, (15, 15), 0)
         self.cont = img
 
         contours, _ = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -69,11 +88,11 @@ class ImageProcessing():
             (x, y), radius = cv2.minEnclosingCircle(contour)
             radius = int(radius)
             # Überprüfe, ob der Radius größer als der Mindestradius ist
-            if radius > self.MIN_RADIUS and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3: #maybe auskommentieren
+            if radius > self.MIN_RADIUS: #and radius > (0.24*y-8) * 0.8 and  radius < (0.24*y-8) * 1.3: #maybe auskommentieren
                 # Erzeuge eine Maske für den Kreisbereich
                 mask_circle = np.zeros_like(self.frame[:, :, 0], dtype="uint8")
                 cv2.circle(mask_circle, (int(x), int(y)), radius, (255, 255, 255), -1)
-
+                
 
 
                 # Wende die Maske an, um die Farbinformationen innerhalb des Kreises zu extrahieren
@@ -86,7 +105,7 @@ class ImageProcessing():
                     # cv2.circle(self.frame, (int(x), int(y)), radius, (0, 255, 0), 2)
                     circles.append((x, y, radius))
         if (masked_frame is not None):
-            self.masked_frame = masked_frame
+            self.masked_frame = mask_circle
         return circles
     
     def getBallCoords(self, frame, check_interval=20, consistency_threshold=0.2):
@@ -99,7 +118,7 @@ class ImageProcessing():
             # Ball detection logic (assuming you have these functions)
             ball_circles = self.findCircles(
                 self.getContours(
-                    self.applyColorMask()
+                    self.applyBallColorMask()
                 )
             )
 
@@ -117,14 +136,15 @@ class ImageProcessing():
             # Calculate average radius for consistency
                 average_radius = sum(radius_history) / len(radius_history)
                 consistent_circles.append((key[0], key[1], average_radius))
+                #cv2.circle(self.frame, key, int(average_radius), (0, 255, 0), 2)
 
         # Print or utilize the detected consistent circles (consistent_circles list)
         if len(consistent_circles) > 0:
-            print("Consistent circles: " + str(consistent_circles))
+            #print("Consistent circles: " + str(consistent_circles))
+            pass
         
         # Reset circle history for next frame
         circle_history = {}
-
         return consistent_circles
 
         
@@ -139,7 +159,7 @@ class ImageProcessing():
     def setBallColor(self, color): # Color string
         self.currentBallColor = color
         # Farben Stand 29.04 12:15
-        if(self.lightlevel == 1):
+        if(self.lightlevel == 0):
             match(color):
                 case "blue":
                     self.ball_lowercolor = np.array([190/2, 30*255/100, 25*255/100])
@@ -182,7 +202,7 @@ class ImageProcessing():
     #Farbe für das Ziel setzen
     def setTargetColor(self, color):
         self.currentTargetColor = color
-        if (self.lightlevel == 1):
+        if (self.lightlevel == 0):
             match color:
                 case "blue":
                     self.target_lowercolor = np.array([190/2, 70*255/100, 70*255/100])

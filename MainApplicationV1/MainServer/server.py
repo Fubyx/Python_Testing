@@ -31,7 +31,7 @@ def setPiUrl():
     print(autopilot.pi_URL)
     return Response('success')
 
-def autoControl(): #still partly pseudocode
+def autoControl(): #still pseudocode
     global autopilot
     global frame
     global imProcessing
@@ -39,12 +39,14 @@ def autoControl(): #still partly pseudocode
     if (frame is None):
         return
 
-    autopilot.setLightsState(1)
+    #autopilot.setLightsState(0) 
+    #imProcessing.setLightLevel(0)
     imProcessing.setModeToBall()
     imProcessing.setBallColor(autopilot.ballColor)
         
     ballx = None
     bally = None
+    ball = []
     height = 480
     width = 640
 
@@ -53,50 +55,44 @@ def autoControl(): #still partly pseudocode
     ballFound = False
     while (not autopilot.stopped) and (not ballFound):
         ball = imProcessing.getBallCoords(frame)
-        print (ball)
-        if (len(ball) > 0):
-            ballFound = True
+        if (len(ball) > 0):  
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
             print(f"x: {ballx}, y: {bally}")
-            ballFound = True
-
+            break
         else:
             autopilot.turn(100, 100)
         time.sleep(1) # to let the camera capture not blurry images
 
     
-    
     someconstant = 50
+    autopilot.setDoorState(True)
     
-    ballCaught = False
-    noBallCounter = 0
-    while (not autopilot.stopped) and (not ballCaught):
+    while (not autopilot.stopped):
         ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):
-            noBallCounter = 0
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
         else:
-            noBallCounter+=1
+            autopilot.forward(100, 100)
+            autopilot.setDoorState(False)
+            break
         if ballx < 0.4:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
         elif ballx > 0.6:
             autopilot.turn((ballx-0.5) * someconstant, -100)
         else:
-            if bally > 0.5:
+            if bally < 0.8:
                 autopilot.forward(100, 100)
             elif (bally > 0.8):
-                autopilot.forward(100, 70)
-            elif (noBallCounter > 5):
-                autopilot.setDoorState(True)
-                autopilot.forward(200, 50)
-                autopilot.setDoorState(False)
-                ballCaught = True
+                autopilot.forward(100, 100)
+                
         time.sleep(1)
+        ballx = None
+        bally = None
         
-
-    """
+    return
+    #"""
     goalFound = False
     while (not autopilot.stopped) and (not ballFound):
         if (goalInImage):
@@ -140,6 +136,14 @@ def receive_frame():
     # Calculate the mean of the grayscale image
     average_brightness = np.mean(gray_image)
     average_brightness = round(average_brightness, 2)
+    if (not autopilot.stopped): # When Autopilot is enabled automatically switch light state
+        if(average_brightness < 50 and autopilot.lights == 0):
+            autopilot.setLightsState(1)
+            imProcessing.setLightLevel(1)
+        elif(average_brightness > 50 and autopilot.lights == 1):
+            autopilot.setLightsState(0)
+            imProcessing.setLightLevel(0)
+
     #for testing on PC
     """
     imProcessing.setModeToBall()
@@ -163,14 +167,13 @@ def distanceData():
     autopilot.distanceLeft      = data["distanceLeft"]
     autopilot.distanceRight     = data["distanceRight"]
     autopilot.distanceBack      = data["distanceBack"]
-    print(
-
-        'autopilot.distanceFrontLeft '+str(autopilot.distanceFrontLeft) +'\n'
-        'autopilot.distanceFrontRight'+str(autopilot.distanceFrontRight)+'\n'
-        'autopilot.distanceLeft      '+str(autopilot.distanceLeft)      +'\n'
-        'autopilot.distanceRight     '+str(autopilot.distanceRight)     +'\n'
-        'autopilot.distanceBack      '+str(autopilot.distanceBack)      +'\n'
-    )
+    #print(f"autopilot.distanceFrontLeft  {autopilot.distanceFrontLeft} \n" +
+    #       f" autopilot.distanceFrontRight  {autopilot.distanceFrontRight}\n" + 
+    #       f" autopilot.distanceLeft  {autopilot.distanceLeft}\n" + 
+    #       f" autopilot.distanceRight  {autopilot.distanceRight}\n" + 
+    #       f" autopilot.distanceBack  {autopilot.distanceBack}\n" + 
+    #      "")
+    
     return Response("success")
 
 @app.route('/pidata', methods=['GET'])

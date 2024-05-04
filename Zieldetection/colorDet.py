@@ -19,6 +19,9 @@ def mark_objects_in_color(frame, lower_color, upper_color):
     # Markiere die gefundenen Objekte mit Rechtecken
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
+        if(w < 40 or h < 40):
+            continue
+        print(f"{w} * {h}")
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
     
     return frame
