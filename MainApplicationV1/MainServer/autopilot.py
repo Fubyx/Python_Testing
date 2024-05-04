@@ -5,6 +5,7 @@ class Autopilot:
 
     pi_URL = None
     stopped = True
+    enabled = False
     lights = 0 # 0 = Light (lights off); 1 = dark (lights on)
     doorState = False
 

@@ -140,7 +140,8 @@ class ImageProcessing():
 
         # Print or utilize the detected consistent circles (consistent_circles list)
         if len(consistent_circles) > 0:
-            print("Consistent circles: " + str(consistent_circles))
+            #print("Consistent circles: " + str(consistent_circles))
+            pass
         
         # Reset circle history for next frame
         circle_history = {}

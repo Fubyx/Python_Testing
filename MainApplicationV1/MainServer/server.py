@@ -42,7 +42,7 @@ def display_frame(): # not needed in production
 threading.Thread(target=display_frame, daemon=True).start()  # Start display thread
 
 autopilot = Autopilot()
-def autoControl(): #still pseudocode
+def autoControl():
     global autopilot
     global frame
     global imProcessing
@@ -50,8 +50,8 @@ def autoControl(): #still pseudocode
     if (frame is None):
         return
 
-    autopilot.setLightsState(0) 
-    imProcessing.setLightLevel(0)
+    #autopilot.setLightsState(0) 
+    #imProcessing.setLightLevel(0)
     imProcessing.setModeToBall()
     imProcessing.setBallColor(autopilot.ballColor)
         
@@ -99,8 +99,8 @@ def autoControl(): #still pseudocode
         ballx = None
         bally = None
         
-
-    """
+    return
+    #"""
     goalFound = False
     while (not autopilot.stopped) and (not ballFound):
         if (goalInImage):
@@ -144,12 +144,13 @@ def receive_frame():
     # Calculate the mean of the grayscale image
     average_brightness = np.mean(gray_image)
     average_brightness = round(average_brightness, 2)
-    if(average_brightness < 50 and not autopilot.lights):
-        autopilot.setLightsState(1)
-        imProcessing.setLightLevel(1)
-    elif(average_brightness > 50 and autopilot.lights):
-        autopilot.setLightsState(0)
-        imProcessing.setLightLevel(0)
+    if (not autopilot.stopped): # When Autopilot is enabled automatically switch light state
+        if(average_brightness < 50 and autopilot.lights == 0):
+            autopilot.setLightsState(1)
+            imProcessing.setLightLevel(1)
+        elif(average_brightness > 50 and autopilot.lights == 1):
+            autopilot.setLightsState(0)
+            imProcessing.setLightLevel(0)
 
     #for testing on PC
     """
@@ -174,12 +175,12 @@ def distanceData():
     autopilot.distanceLeft      = data["distanceLeft"]
     autopilot.distanceRight     = data["distanceRight"]
     autopilot.distanceBack      = data["distanceBack"]
-    print(f"autopilot.distanceFrontLeft  {autopilot.distanceFrontLeft} \n" +
-           f" autopilot.distanceFrontRight  {autopilot.distanceFrontRight}\n" + 
-           f" autopilot.distanceLeft  {autopilot.distanceLeft}\n" + 
-           f" autopilot.distanceRight  {autopilot.distanceRight}\n" + 
-           f" autopilot.distanceBack  {autopilot.distanceBack}\n" + 
-          "")
+    #print(f"autopilot.distanceFrontLeft  {autopilot.distanceFrontLeft} \n" +
+    #       f" autopilot.distanceFrontRight  {autopilot.distanceFrontRight}\n" + 
+    #       f" autopilot.distanceLeft  {autopilot.distanceLeft}\n" + 
+    #       f" autopilot.distanceRight  {autopilot.distanceRight}\n" + 
+    #       f" autopilot.distanceBack  {autopilot.distanceBack}\n" + 
+    #      "")
     
     return Response("success")
 
