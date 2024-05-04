@@ -31,18 +31,7 @@ def setPiUrl():
     print(autopilot.pi_URL)
     return Response('success')
 
-def display_frame(): # not needed in production
-    global frame
-    while True:
-        if frame is not None:
-            cv2.imshow('Camera Stream', frame)
-            if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
-                break
-
-threading.Thread(target=display_frame, daemon=True).start()  # Start display thread
-
-autopilot = Autopilot()
-def autoControl():
+def autoControl(): #still pseudocode
     global autopilot
     global frame
     global imProcessing
@@ -61,7 +50,10 @@ def autoControl():
     height = 480
     width = 640
 
-    while (not autopilot.stopped):
+
+    # searching ball:
+    ballFound = False
+    while (not autopilot.stopped) and (not ballFound):
         ball = imProcessing.getBallCoords(frame)
         if (len(ball) > 0):  
             ballx = ball[0][0]/width
