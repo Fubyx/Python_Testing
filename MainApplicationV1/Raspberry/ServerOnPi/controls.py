@@ -47,7 +47,7 @@ class Controls:
         GPIO.output(self.LIGHT_PIN, GPIO.LOW)
         self.start()
     
-    def changeValues(self, verticalSpeed, rotationalSpeed, lightsState, doorState):
+    def changeValues(self, verticalSpeed, rotationalSpeed, lightsState, doorState, duration):
         if(self.lightsState != lightsState):
             self.changeLighting(lightsState)
 
@@ -76,6 +76,16 @@ class Controls:
 
         self.motor1PWM.ChangeDutyCycle(abs(leftSpeed))
         self.motor2PWM.ChangeDutyCycle(abs(rightSpeed))
+        if (duration != -1):
+            time.sleep(duration * 0.001)
+            self.stop()
+
+    def stop(self):
+        GPIO.output(self.MOTOR2IN1PIN, GPIO.LOW)
+        GPIO.output(self.MOTOR2IN2PIN, GPIO.LOW)
+
+        self.motor1PWM.ChangeDutyCycle(0)
+        self.motor2PWM.ChangeDutyCycle(0)
 
     def changeLighting(self, newState):
         self.lightsState = newState
