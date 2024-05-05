@@ -62,6 +62,7 @@ def autoControl(): #still partly pseudocode
     dodgeDirection = None
     wallSide = None
 
+
     while not autopilot.stopped:
         time.sleep(0.5) # time to let the camera capture not blurry images 
 
@@ -103,8 +104,7 @@ def autoControl(): #still partly pseudocode
                     autopilot.turn(100, 100)
                 elif (wallSide == 'right' and autopilot.distanceRight > 20):
                     autopilot.turn(100, -100)
-                else:
-                    autopilot.forward(300, 100)
+                autopilot.forward(300, 100)
             case 'ballCatching':
                 ball = imProcessing.getBallCoords(frame)
                 if (len(ball) > 0):
@@ -251,6 +251,7 @@ def img():
 def distanceData():
     global autopilot
     data = request.get_json(True)
+
     autopilot.distanceFrontLeft = data["distanceFrontLeft"]
     autopilot.distanceFrontRight= data["distanceFrontRight"]
     autopilot.distanceLeft      = data["distanceLeft"]
