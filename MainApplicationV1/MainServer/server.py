@@ -49,6 +49,7 @@ def autoControl(): #still partly pseudocode
     #prevLigths = autopilot.lights
     #helpCounter = 0
     #imProcessing.setTargetColor(autopilot.targetColor)
+    #ballNotFoundCounter = 0
 
     ballx = None
     bally = None
@@ -58,16 +59,38 @@ def autoControl(): #still partly pseudocode
     TURN_AMOUNT = 50
 
     stage = 'ballFinding'
+    dodgeObstacle = False
+    dodgeDirection = None
+    wallSide = None
+
 
     while not autopilot.stopped:
+        time.sleep(0.5) # time to let the camera capture not blurry images 
+
+
         #"" # Removed as this functionality is already added to recieve_frame
         if (prevLigths != (average_brightness < 100)):
             prevLigths = (average_brightness < 100)
             imProcessing.setLightLevel(prevLigths)
             autopilot.lights = prevLigths
-        #""
 
         # TODO: reacting to distance sencor data!
+        if dodgeObstacle:
+            if dodgeDirection == 'left' and autopilot.distanceFrontRight < 30:
+                    autopilot.turn(100, 100)
+            elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 30:
+                    autopilot.turn(100, -100)
+            else:
+                dodgeObstacle = False
+            continue
+        if (autopilot.distanceFrontLeft < 10 or autopilot.distanceFrontRight < 10):
+            dodgeObstacle = True
+            if (autopilot.distanceFrontLeft < autopilot.distanceFrontRight):
+                dodgeDirection = 'right'
+                wallSide = 'left'
+            else:
+                dodgeDirection = 'left'
+                wallSide = 'right'
         
         match (stage):
             case 'ballFinding':
@@ -78,9 +101,12 @@ def autoControl(): #still partly pseudocode
                     print(f"ball found: x: {ballx}, y: {bally}")
                     autopilot.setDoorState(True)
                     stage = 'ballCatching'
-                else:
-                    autopilot.turn(400, 100)
-                time.sleep(1) # to let the camera capture not blurry images 
+                    continue
+                if (wallSide == 'left' and autopilot.distanceLeft > 20):
+                    autopilot.turn(100, 100)
+                elif (wallSide == 'right' and autopilot.distanceRight > 20):
+                    autopilot.turn(100, -100)
+                autopilot.forward(300, 100)
             case 'ballCatching':
                 ball = imProcessing.getBallCoords(frame)
                 if (len(ball) > 0):
@@ -102,16 +128,15 @@ def autoControl(): #still partly pseudocode
                             else:
                                 autopilot.forward(40, 50)
 
-                    time.sleep(0.5)
-                    helpCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
+                    
+                    ballNotFoundCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
                 else:
-                    if (helpCounter > 10):
+                    if (ballNotFoundCounter > 5):
                         autopilot.forward(100, 100)
                         autopilot.setDoorState(False)
                         stage = 'goalFinding'
                     else:
-                        time.sleep(0.1)
-                        helpCounter+= 1
+                        ballNotFoundCounter+= 1
                 
             case 'goalFinding':
                 imProcessing.setModeToTarget()
@@ -140,16 +165,16 @@ def autoControl(): #still partly pseudocode
                                 autopilot.forward(100, 100)
 
                     time.sleep(0.5)
-                    helpCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
+                    ballNotFoundCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
                 else:
-                    if (helpCounter > 10):
+                    if (ballNotFoundCounter > 10):
                         autopilot.doorState(True)
                         autopilot.forward(100, 100)
                         autopilot.forward(10, -100)
                         # now: PARTY!!!
                     else:
                         time.sleep(0.1)
-                        helpCounter+= 1
+                        ballNotFoundCounter+= 1
             case _:
                 print("No clue what's happening anymore (stage matching error in autoControl() )")
     
@@ -311,6 +336,7 @@ def img():
 def distanceData():
     global autopilot
     data = request.get_json(True)
+
     autopilot.distanceFrontLeft = data["distanceFrontLeft"]
     autopilot.distanceFrontRight= data["distanceFrontRight"]
     autopilot.distanceLeft      = data["distanceLeft"]
