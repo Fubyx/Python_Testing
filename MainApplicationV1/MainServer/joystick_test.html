@@ -73,9 +73,9 @@
         <canvas id="canvas" class="ignoreWhenAuto" name="controls"></canvas>
     </div>
     <script>
-        let imgSrc = "http://192.168.86.175:5000/img";
-        let controlSrc = "http://192.168.86.175:5000/controls";
-        let piDataSrc = "http://192.168.86.175:5000/pidata";
+        let imgSrc = "http://192.168.86.113:5000/img";
+        let controlSrc = "http://192.168.86.113:5000/controls";
+        let piDataSrc = "http://192.168.86.113:5000/pidata";
         // my ip in Fuby's hotspog: 192.168.86.51
 
         var canvas, ctx;
@@ -295,6 +295,7 @@
                 console.log("test");
             }
         }
+        
         function updateImage() {
             document.getElementById('camImage').src = imgSrc + '?' + Date.now();
         }
@@ -302,6 +303,88 @@
         window.setInterval(updateImage, 50);
         window.setInterval(getPiData, 100);
 
+        function handleMovement(e){
+            if(e.key == 'w'){
+                try {
+                    fetch(controlSrc, {
+                        method: 'POST',
+                        body: '{"verticalSpeed" :' + 100 +
+                            ', "rotationalSpeed" :' + 0 +
+                            ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                            ', "doorState" :' + document.getElementById("doorState").checked +
+                            ', "autopilot" :' + document.getElementById("autopilotState").checked +
+                            ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            '}',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        }
+                    });
+                } catch (err) {
+                    console.log("test");
+                }
+            }else if(e.key == 's'){
+                try {
+                    fetch(controlSrc, {
+                        method: 'POST',
+                        body: '{"verticalSpeed" :' + -100 +
+                            ', "rotationalSpeed" :' + 0 +
+                            ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                            ', "doorState" :' + document.getElementById("doorState").checked +
+                            ', "autopilot" :' + document.getElementById("autopilotState").checked +
+                            ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            '}',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        }
+                    });
+                } catch (err) {
+                    console.log("test");
+                } 
+            }
+            
+        }
+        function handleMovement(e){
+            if(e.key == 'w'){
+                try {
+                    fetch(controlSrc, {
+                        method: 'POST',
+                        body: '{"verticalSpeed" :' + 0 +
+                            ', "rotationalSpeed" :' + 0 +
+                            ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                            ', "doorState" :' + document.getElementById("doorState").checked +
+                            ', "autopilot" :' + document.getElementById("autopilotState").checked +
+                            ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            '}',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        }
+                    });
+                } catch (err) {
+                    console.log("test");
+                }
+            }else if(e.key == 's'){
+                try {
+                    fetch(controlSrc, {
+                        method: 'POST',
+                        body: '{"verticalSpeed" :' + 0 +
+                            ', "rotationalSpeed" :' + 0 +
+                            ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                            ', "doorState" :' + document.getElementById("doorState").checked +
+                            ', "autopilot" :' + document.getElementById("autopilotState").checked +
+                            ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            '}',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        }
+                    });
+                } catch (err) {
+                    console.log("test");
+                } 
+            }
+            
+        }
+        window.addEventListener('keydown', handleMovement);
+        window.addEventListener('keyup', handleMovement2);
 
     </script>
 </body>

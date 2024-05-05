@@ -75,7 +75,7 @@ def autoControl(): #still partly pseudocode
                     print(f"ball found: x: {ballx}, y: {bally}")
                     stage = 'ballCatching'
                 else:
-                    autopilot.turn(100, 100)
+                    autopilot.turn(300, 100)
                 time.sleep(1) # to let the camera capture not blurry images 
             case 'ballCatching':
                 ball = imProcessing.getBallCoords(frame)
@@ -88,7 +88,7 @@ def autoControl(): #still partly pseudocode
                         autopilot.turn((ballx-0.5) * TURN_AMOUNT, -100)
                     else:
                         if bally < 0.8:
-                            autopilot.forward(100, 100)
+                            autopilot.forward(40, 50)
                         elif (bally > 0.8):
                             #fine adjustment:
                             if ballx < 0.45:
@@ -96,7 +96,7 @@ def autoControl(): #still partly pseudocode
                             elif ballx > 0.55:
                                 autopilot.turn((ballx-0.5) * TURN_AMOUNT, -100)
                             else:
-                                autopilot.forward(100, 100)
+                                autopilot.forward(40, 50)
 
                     time.sleep(0.5)
                     helpCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
