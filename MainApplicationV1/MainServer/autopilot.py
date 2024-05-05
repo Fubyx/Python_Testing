@@ -10,6 +10,7 @@ class Autopilot:
     doorState = False
 
     ballColor = "blue"
+    doorColor = "blue"
 
     distanceFrontLeft = 100
     distanceFrontRight = 100

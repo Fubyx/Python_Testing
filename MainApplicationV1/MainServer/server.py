@@ -31,24 +31,136 @@ def setPiUrl():
     print(autopilot.pi_URL)
     return Response('success')
 
-def autoControl(): #still pseudocode
+def autoControl(): #still partly pseudocode
     global autopilot
     global frame
     global imProcessing
+    global average_brightness
 
     if (frame is None):
         return
 
     #autopilot.setLightsState(0) 
     #imProcessing.setLightLevel(0)
+    #autopilot.setDoorState(True)
     imProcessing.setModeToBall()
     imProcessing.setBallColor(autopilot.ballColor)
-    imProcessing.setTargetColor(autopilot.targetColor)
-        
+    imProcessing.setTargetColor(autopilot.doorColor)
+    #prevLigths = autopilot.lights
+    #helpCounter = 0
+    #imProcessing.setTargetColor(autopilot.targetColor)
+
     ballx = None
     bally = None
     ball = []
     height, width, _ = frame.shape 
+    """Incoming#----------------------------------
+    TURN_AMOUNT = 50
+
+    stage = 'ballFinding'
+
+    while not autopilot.stopped:
+        #"" # Removed as this functionality is already added to recieve_frame
+        if (prevLigths != (average_brightness < 100)):
+            prevLigths = (average_brightness < 100)
+            imProcessing.setLightLevel(prevLigths)
+            autopilot.lights = prevLigths
+        #""
+
+        # TODO: reacting to distance sencor data!
+        
+        match (stage):
+            case 'ballFinding':
+                ball = imProcessing.getBallCoords(frame)
+                if (len(ball) > 0):  
+                    ballx = ball[0][0]/width
+                    bally = ball[0][1]/height
+                    print(f"ball found: x: {ballx}, y: {bally}")
+                    autopilot.setDoorState(True)
+                    stage = 'ballCatching'
+                else:
+                    autopilot.turn(400, 100)
+                time.sleep(1) # to let the camera capture not blurry images 
+            case 'ballCatching':
+                ball = imProcessing.getBallCoords(frame)
+                if (len(ball) > 0):
+                    ballx = ball[0][0]/width
+                    bally = ball[0][1]/height
+                    if ballx < 0.4:
+                        autopilot.turn((0.5 - ballx) * TURN_AMOUNT, 100)
+                    elif ballx > 0.6:
+                        autopilot.turn((ballx-0.5) * TURN_AMOUNT, -100)
+                    else:
+                        if bally < 0.8:
+                            autopilot.forward(40, 50)
+                        elif (bally > 0.8):
+                            #fine adjustment:
+                            if ballx < 0.45:
+                                autopilot.turn((0.5 - ballx) * TURN_AMOUNT, 100)
+                            elif ballx > 0.55:
+                                autopilot.turn((ballx-0.5) * TURN_AMOUNT, -100)
+                            else:
+                                autopilot.forward(40, 50)
+
+                    time.sleep(0.5)
+                    helpCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
+                else:
+                    if (helpCounter > 10):
+                        autopilot.forward(100, 100)
+                        autopilot.setDoorState(False)
+                        stage = 'goalFinding'
+                    else:
+                        time.sleep(0.1)
+                        helpCounter+= 1
+                
+            case 'goalFinding':
+                imProcessing.setModeToTarget()
+                # TODO: same as ballFinding
+            case 'goalScoring':
+                # just copied from ballcatching!!!
+                target = imProcessing.getTargetCoords(frame)
+                if (len(target) > 0):
+                    targetx = target[0][0]/width 
+                    # An Fabian in dor Zukunft sobolt die getTarget funktion gmocht isch: isch targetx die mitte?
+                    targety = target[0][1]/height
+                    if targetx < 0.4:
+                        autopilot.turn((0.5 - targetx) * TURN_AMOUNT, 100)
+                    elif targetx > 0.6:
+                        autopilot.turn((targetx-0.5) * TURN_AMOUNT, -100)
+                    else:
+                        if targety < 0.8:
+                            autopilot.forward(100, 100)
+                        elif (targety > 0.8):
+                            #fine adjustment:
+                            if targetx < 0.45:
+                                autopilot.turn((0.5 - targetx) * TURN_AMOUNT, 100)
+                            elif targetx > 0.55:
+                                autopilot.turn((targetx-0.5) * TURN_AMOUNT, -100)
+                            else:
+                                autopilot.forward(100, 100)
+
+                    time.sleep(0.5)
+                    helpCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
+                else:
+                    if (helpCounter > 10):
+                        autopilot.doorState(True)
+                        autopilot.forward(100, 100)
+                        autopilot.forward(10, -100)
+                        # now: PARTY!!!
+                    else:
+                        time.sleep(0.1)
+                        helpCounter+= 1
+            case _:
+                print("No clue what's happening anymore (stage matching error in autoControl() )")
+    
+    
+    
+        
+        
+    return
+    #"""#---------------------------------
+
+    #"""LOCAL (Fabian) ---------------------------------------------
     print(f"w: {width} h: {height}")
     someconstant = 400
     goalCenterx = None
@@ -131,8 +243,9 @@ def autoControl(): #still pseudocode
             if inFrontOfGoal:
                 print("Shooting")
                 autopilot.setDoorState(True)
-                autopilot.forward(400, 100)
-                time.sleep(2)
+                autopilot.forward(200, 100)
+                time.sleep(1)
+                autopilot.forward(200, 100)
                 autopilot.setDoorState(False)
                 break
             elif goalUpperEdge < 0.65:
