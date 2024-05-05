@@ -113,6 +113,7 @@ def autoControl(): #still partly pseudocode
                 imProcessing.setModeToTarget()
                 # TODO: same as ballFinding
             case 'goalScoring':
+                # just copied from ballcatching!!!
                 target = imProcessing.getTargetCoords(frame)
                 if (len(target) > 0):
                     targetx = target[0][0]/width 
