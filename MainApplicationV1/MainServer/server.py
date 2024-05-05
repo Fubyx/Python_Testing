@@ -50,7 +50,7 @@ def autoControl(): #still pseudocode
     height = 480
     width = 640
 
-
+    #"""
     # searching ball:
     ballFound = False
     while (not autopilot.stopped) and (not ballFound):
@@ -61,11 +61,11 @@ def autoControl(): #still pseudocode
             print(f"x: {ballx}, y: {bally}")
             break
         else:
-            autopilot.turn(300, 100)
+            autopilot.turn(400, 100)
         time.sleep(1) # to let the camera capture not blurry images
 
     
-    someconstant = 50
+    someconstant = 400
     autopilot.setDoorState(True)
     
     while (not autopilot.stopped):
@@ -74,7 +74,7 @@ def autoControl(): #still pseudocode
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
         else:
-            #autopilot.forward(50, 25)
+            autopilot.forward(200, 60)
             autopilot.setDoorState(False)
             break
         if ballx < 0.44:
@@ -83,9 +83,9 @@ def autoControl(): #still pseudocode
             autopilot.turn((ballx-0.5) * someconstant, -100)
         else:
             if bally < 0.8:
-                autopilot.forward(40, 50)
+                autopilot.forward(400, 75)
             elif (bally > 0.8):
-                autopilot.forward(40, 50)
+                autopilot.forward(400, 75)
                 
         time.sleep(1)
         ballx = None
@@ -206,9 +206,17 @@ def controls():
         rotationalSpeed = data["rotationalSpeed"]
         autopilot.lights = data["lightsState"]
         autopilot.doorState = data["doorState"]
-        autopilot.stopped = True
+        if not autopilot.stopped:
+            autopilot.stop()
+            autopilot.stopped = True
         if (autopilot.pi_URL is not None):
-            response = requests.post(autopilot.pi_URL, json={'verticalSpeed': verticalSpeed, 'rotationalSpeed' : rotationalSpeed, 'lightsState': autopilot.lights, 'doorState': autopilot.doorState})
+            response = requests.post(autopilot.pi_URL, json={
+                'verticalSpeed': verticalSpeed, 
+                'rotationalSpeed' : rotationalSpeed, 
+                'lightsState': autopilot.lights, 
+                'doorState': autopilot.doorState,
+                'duration': -1
+                })
             try:
                 response.raise_for_status()  # Raise exception on non-200 status codes
                 #print(f"sent successfully. Status code: {response.status_code}")
