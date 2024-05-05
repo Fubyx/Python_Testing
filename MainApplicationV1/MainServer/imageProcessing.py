@@ -18,7 +18,10 @@ class ImageProcessing():
         self.ball_lowercolor_2 = None
         self.ball_uppercolor_2 = None
 
-        self.lightlevel = None # 0 = Light (lights off); 1 = dark (lights on)
+        self.target_lowercolor = np.array([105/2, 30*255/100, 65*255/100])
+        self.target_uppercolor = np.array([120/2, 50*255/100, 80*255/100])
+
+        self.lightlevel = 0 # 0 = Light (lights off); 1 = dark (lights on)
 
         # Variable for saving current color strings so that the color can be
         # edited on light level change
@@ -61,12 +64,12 @@ class ImageProcessing():
 
 
 
-    def applyBallColorMask(self):
-        hsv = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
+    def applyColorMask(self, frame, lower, upper, lower2 = None, upper2 = None):
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         # Erzeuge einen Maskenbereich für die angegebene Farbe
-        mask = cv2.inRange(hsv, self.ball_lowercolor, self.ball_uppercolor)
-        if self.ball_lowercolor_2 is not None:
-            mask2 = cv2.inRange(hsv, self.ball_lowercolor_2, self.ball_uppercolor_2)
+        mask = cv2.inRange(hsv, lower, upper)
+        if lower2 is not None:
+            mask2 = cv2.inRange(hsv, lower2, upper2)
             #Combine the 2 masks into mask
             mask = cv2.bitwise_or(mask, mask2)
         return mask
@@ -118,7 +121,7 @@ class ImageProcessing():
             # Ball detection logic (assuming you have these functions)
             ball_circles = self.findCircles(
                 self.getContours(
-                    self.applyBallColorMask()
+                    self.applyColorMask(self.frame, self.ball_lowercolor, self.ball_uppercolor, self.ball_lowercolor_2, self.ball_uppercolor_2)
                 )
             )
 
@@ -146,8 +149,6 @@ class ImageProcessing():
         # Reset circle history for next frame
         circle_history = {}
         return consistent_circles
-
-        
 
     def setModeToBall(self):
         self.mode = 0
@@ -197,16 +198,17 @@ class ImageProcessing():
                 case "yellow":
                     self.ball_lowercolor = np.array([65/2, 10*255/100, 60*255/100])
                     self.ball_uppercolor = np.array([80/2, 100*255/100, 100*255/100])
-
-        
+    
     #Farbe für das Ziel setzen
     def setTargetColor(self, color):
         self.currentTargetColor = color
         if (self.lightlevel == 0):
             match color:
                 case "blue":
-                    self.target_lowercolor = np.array([190/2, 70*255/100, 70*255/100])
-                    self.target_uppercolor = np.array([205/2, 100*255/100, 100*255/100])
+                    #self.target_lowercolor = np.array([190/2, 70*255/100, 70*255/100])
+                    #self.target_uppercolor = np.array([205/2, 100*255/100, 100*255/100])
+                    self.target_lowercolor = np.array([175/2, 80*255/100, 30*255/100])
+                    self.target_uppercolor = np.array([230/2, 100*255/100, 100*255/100])
                 case "red":
                     self.target_lowercolor = np.array([5/2, 70*255/100, 70*255/100])
                     self.target_uppercolor = np.array([20/2, 100*255/100, 100*255/100])
@@ -240,8 +242,33 @@ class ImageProcessing():
 
     #die Koordinaten des Ziels ermitteln
     def getTargetCoords(self, frame):
-        return
+        self.frame = frame
+        contours = self.getContours(
+            self.applyColorMask(self.frame, self.target_lowercolor, self.target_uppercolor)
+        )
+        for c in contours:
+            x, y, w, h = cv2.boundingRect(c)
+            if (w < 40 or h < 40):
+                continue
+            roi = frame[y:y + h, x:x + w]
+            hole = self.detect_and_mark_hole(roi)
+            if hole is not None:
+                hole[0] += x
+                hole[1] += y
+                return hole
     
+    def detect_and_mark_hole(self, roi):
+        contours = self.getContours(self.applyColorMask(
+            roi,
+            np.array([0.0, 0.0, 0.0]), 
+            np.array([360/2, 255*255/100, 10*255/100])
+        ))
+
+        if len(contours) > 0:
+            largest_contour = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(largest_contour)
+            return [x, y, w, h]
+        return None
     #Array von Koordinaten zurückgeben, das die Daten der Hindernisse enthält
     def getObstacles(self, frame):
         return

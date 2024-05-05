@@ -87,4 +87,6 @@ class Autopilot:
 
     def setBallColor(self, newColor):
         self.ballColor = newColor
-        
+    
+    def settargetColor(self, newColor):
+        self.targetColor = newColor
