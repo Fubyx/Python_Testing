@@ -21,8 +21,9 @@ def controls():
         rotationalSpeed = data["rotationalSpeed"]
         lightsState = data["lightsState"]
         doorState = data["doorState"]
+        duration = data['duration']
 
-        control.changeValues(verticalSpeed, rotationalSpeed, lightsState, doorState)
+        control.changeValues(verticalSpeed, rotationalSpeed, lightsState, doorState, duration)
     except Exception as e:
         print(e)
     return Response("success") # return things such as data from distance sensors

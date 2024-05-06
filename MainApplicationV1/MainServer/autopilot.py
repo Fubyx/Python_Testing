@@ -24,16 +24,19 @@ class Autopilot:
             'verticalSpeed': 0, 
             'rotationalSpeed' : power, 
             'lightsState': self.lights, 
-            'doorState':self.doorState
+            'doorState':self.doorState,
+            'duration': milliseconds
             })
         try:
             response.raise_for_status()  # Raise exception on non-200 status codes
             #print(f"sent successfully. Status code: {response.status_code}")
         except:
             print("sending failed")
+        return
         for i in range(1, 10):
             time.sleep(0.0001*milliseconds)
             if self.stopped:
+                self.stop()
                 return
         self.stop()
 
@@ -43,17 +46,19 @@ class Autopilot:
             'verticalSpeed': power, 
             'rotationalSpeed' : 0, 
             'lightsState': self.lights, 
-            'doorState':self.doorState
+            'doorState':self.doorState,
+            'duration': milliseconds
             })
         try:
             response.raise_for_status()  # Raise exception on non-200 status codes
             #print(f"sent successfully. Status code: {response.status_code}")
         except:
             print("sending failed")
-        
+        return
         for i in range(1, 10):
             time.sleep(0.01*milliseconds)
             if self.stopped:
+                self.stop()
                 return
         self.stop()
 
@@ -62,7 +67,8 @@ class Autopilot:
             'verticalSpeed': 0, 
             'rotationalSpeed' : 0, 
             'lightsState': self.lights, 
-            'doorState':self.doorState
+            'doorState':self.doorState,
+            'duration': -1
             })
         try:
             response.raise_for_status()  # Raise exception on non-200 status codes
@@ -82,4 +88,6 @@ class Autopilot:
 
     def setBallColor(self, newColor):
         self.ballColor = newColor
-        
+    
+    def settargetColor(self, newColor):
+        self.targetColor = newColor
