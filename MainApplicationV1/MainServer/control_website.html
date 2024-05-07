@@ -71,7 +71,7 @@
             <div class="switchBox">
                 Stream:
                 <label class="switch">
-                    <input type="checkbox" checked id="doorState" onclick="toggleStream()">
+                    <input type="checkbox" checked id="streamSwitch" onclick="toggleStream()">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -80,9 +80,9 @@
         <canvas id="canvas" class="ignoreWhenAuto" name="controls"></canvas>
     </div>
     <script>
-        let imgSrc = "http://192.168.86.113:5000/img";
-        let controlSrc = "http://192.168.86.113:5000/controls";
-        let piDataSrc = "http://192.168.86.113:5000/pidata";
+        let imgSrc = "http://192.168.86.51:5000/img";
+        let controlSrc = "http://192.168.86.51:5000/controls";
+        let piDataSrc = "http://192.168.86.51:5000/pidata";
         // my ip in Fuby's hotspog: 10.10.31.11
 
         var canvas, ctx;
@@ -309,8 +309,8 @@
             document.getElementById('camImage').src = imgSrc + '?' + Date.now();
         }
         //window.setInterval(sendData, 200);
-        imgUpdate = window.setInterval(updateImage, 50);
-        window.setInterval(getPiData, 100);
+        imgUpdate = window.setInterval(updateImage, 200);
+        window.setInterval(getPiData, 300);
 
         imgUpdateToggle = false;
         function toggleStream() {
@@ -365,7 +365,7 @@
             }
 
         }
-        function handleMovement(e) {
+        function handleMovement2(e) {
             if (e.key == 'w') {
                 try {
                     fetch(controlSrc, {

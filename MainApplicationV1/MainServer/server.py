@@ -73,10 +73,10 @@ def autoControl(): #still partly pseudocode
     dodgeObstacle = False
     dodgeDirection = None
     wallSide = None
-
+    moveInCircleCounter = 0
 
     while not autopilot.stopped:
-        time.sleep(0.5) # time to let the camera capture not blurry images 
+        time.sleep(2) # time to let the camera capture not blurry images 
 
         print(f"\n\ndistance front right: {autopilot.distanceFrontRight} \n" +
               f"distance front left: {autopilot.distanceFrontLeft} \n" +
@@ -84,6 +84,19 @@ def autoControl(): #still partly pseudocode
               f"distance left: {autopilot.distanceLeft} \n" +
               f"distance back: {autopilot.distanceBack}" 
               )
+        
+        if (moveInCircleCounter > 10):
+            wallSide = None
+        if (wallSide == 'left' and autopilot.distanceLeft < 10):
+            moveInCircleCounter = 0
+            autopilot.turn(100, -100)
+            print("turn right wall ist detected too close on the left") 
+        elif (wallSide == 'right' and autopilot.distanceRight < 10):
+            moveInCircleCounter = 0
+            autopilot.turn(300, 100)
+            print("turn right as no wall is detected on the left")
+        else: 
+            moveInCircleCounter = 0
         # Removed as this functionality is already added to recieve_frame
         #if (prevLigths != (average_brightness < 100)):
         #    prevLigths = (average_brightness < 100)
@@ -92,18 +105,18 @@ def autoControl(): #still partly pseudocode
 
         # TODO: reacting to distance sencor data!
         if dodgeObstacle:
-            if dodgeDirection == 'left' and autopilot.distanceFrontRight < 30:
+            if dodgeDirection == 'left' and autopilot.distanceFrontRight < 40:
                 autopilot.turn(300, 100)
                 print("Turn to the left to dodge front right obstacle")
-            elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 30:
+            elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 40:
                 autopilot.turn(300, -100)
                 print("Turn to the right to dodge front left obstacle")
             else:
                 dodgeObstacle = False
             continue
-        if (autopilot.distanceFrontLeft < 20 or autopilot.distanceFrontRight < 20):
+        if (autopilot.distanceFrontLeft < 30 or autopilot.distanceFrontRight < 30):
             dodgeObstacle = True
-            if (autopilot.distanceFrontLeft < 20 and autopilot.distanceFrontRight < 20):
+            if (autopilot.distanceFrontLeft < 40 and autopilot.distanceFrontRight < 40):
                 if (wallSide == "left"):
                     dodgeDirection = "right"
                 else:
@@ -130,13 +143,16 @@ def autoControl(): #still partly pseudocode
                     autopilot.setDoorState(True)
                     stage = 'ballCatching'
                     continue
-                if (wallSide == 'left' and autopilot.distanceLeft > 20):
+                if (wallSide == 'left' and autopilot.distanceLeft > 50):
+                    moveInCircleCounter+=1
                     autopilot.turn(300, 100)
                     print("turn left as no wall is detected on the left")
-                elif (wallSide == 'right' and autopilot.distanceRight > 20):
-                    autopilot.turn(300, -100)
-                    print("turn right as no wall is detected on the right")
-                autopilot.forward(300, 100)
+                elif (wallSide == 'right' and autopilot.distanceRight > 50):
+                    moveInCircleCounter+=1
+                    autopilot.turn(100, -100)
+                    
+                
+                autopilot.forward(600, 100)
                 print("move forward")
             case 'ballCatching':
                 return
