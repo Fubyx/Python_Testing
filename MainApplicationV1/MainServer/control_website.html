@@ -80,10 +80,10 @@
         <canvas id="canvas" class="ignoreWhenAuto" name="controls"></canvas>
     </div>
     <script>
-        let imgSrc = "http://10.10.31.11:5000/img";
-        let controlSrc = "http://10.10.31.11:5000/controls";
-        let piDataSrc = "http://10.10.31.11:5000/pidata";
-        // my ip in Fuby's hotspog: 192.168.86.51
+        let imgSrc = "http://192.168.86.113:5000/img";
+        let controlSrc = "http://192.168.86.113:5000/controls";
+        let piDataSrc = "http://192.168.86.113:5000/pidata";
+        // my ip in Fuby's hotspog: 10.10.31.11
 
         var canvas, ctx;
 
@@ -312,16 +312,16 @@
         imgUpdate = window.setInterval(updateImage, 50);
         window.setInterval(getPiData, 100);
 
-        imgUpdateToggle = False;
+        imgUpdateToggle = false;
         function toggleStream() {
             if (imgUpdateToggle) {
                 imgUpdate = window.setInterval(updateImage, 50);
-                document.getElementById('camImage').visibility = 'visible';
+                document.getElementById('camImage').style.visibility = 'visible';
             } else {
                 clearInterval(imgUpdate);
-                document.getElementById('camImage').visibility = 'hidden';
+                document.getElementById('camImage').style.visibility = 'hidden';
             }
-
+            imgUpdateToggle = !imgUpdateToggle;
         }
         function handleMovement(e) {
             if (e.key == 'w') {
