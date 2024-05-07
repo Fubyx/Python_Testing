@@ -41,6 +41,9 @@ def setPiUrl():
     print(autopilot.pi_URL)
     return Response('success')
 
+def party():
+    global autopilot
+
 def autoControl(): #still partly pseudocode
     print("Autopilot started ---------------------------------------")
     global autopilot
@@ -74,6 +77,9 @@ def autoControl(): #still partly pseudocode
     dodgeDirection = None
     wallSide = None
     moveInCircleCounter = 0
+    someconstant = 600
+    goalCenterx = None
+    inFrontOfGoal = False
 
     while not autopilot.stopped:
         time.sleep(2) # time to let the camera capture not blurry images 
@@ -84,54 +90,52 @@ def autoControl(): #still partly pseudocode
               f"distance left: {autopilot.distanceLeft} \n" +
               f"distance back: {autopilot.distanceBack}" 
               )
-        
-        if (moveInCircleCounter > 10):
-            wallSide = None
-        if (wallSide == 'left' and autopilot.distanceLeft < 10):
-            moveInCircleCounter = 0
-            autopilot.turn(100, -100)
-            print("turn right wall ist detected too close on the left") 
-        elif (wallSide == 'right' and autopilot.distanceRight < 10):
-            moveInCircleCounter = 0
-            autopilot.turn(300, 100)
-            print("turn right as no wall is detected on the left")
-        else: 
-            moveInCircleCounter = 0
-        # Removed as this functionality is already added to recieve_frame
-        #if (prevLigths != (average_brightness < 100)):
-        #    prevLigths = (average_brightness < 100)
-        #    imProcessing.setLightLevel(prevLigths)
-        #    autopilot.lights = prevLigths
+        if stage != 'goalScoring':
+            if (moveInCircleCounter > 10):
+                wallSide = None
+            if (wallSide == 'left' and autopilot.distanceLeft < 10):
+                moveInCircleCounter = 0
+                autopilot.turn(100, -100)
+                print("turn right as wall is detected too close on the left") 
+            elif (wallSide == 'right' and autopilot.distanceRight < 10):
+                moveInCircleCounter = 0
+                autopilot.turn(100, 100)
+                print("turn left as wall is detected too close on the right")
 
-        # TODO: reacting to distance sencor data!
-        if dodgeObstacle:
-            if dodgeDirection == 'left' and autopilot.distanceFrontRight < 40:
-                autopilot.turn(300, 100)
-                print("Turn to the left to dodge front right obstacle")
-            elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 40:
-                autopilot.turn(300, -100)
-                print("Turn to the right to dodge front left obstacle")
-            else:
-                dodgeObstacle = False
-            continue
-        if (autopilot.distanceFrontLeft < 30 or autopilot.distanceFrontRight < 30):
-            dodgeObstacle = True
-            if (autopilot.distanceFrontLeft < 40 and autopilot.distanceFrontRight < 40):
-                if (wallSide == "left"):
-                    dodgeDirection = "right"
+            # Removed as this functionality is already added to recieve_frame
+            #if (prevLigths != (average_brightness < 100)):
+            #    prevLigths = (average_brightness < 100)
+            #    imProcessing.setLightLevel(prevLigths)
+            #    autopilot.lights = prevLigths
+
+            if dodgeObstacle:
+                if dodgeDirection == 'left' and autopilot.distanceFrontRight < 40:
+                    autopilot.turn(300, 100)
+                    print("Turn to the left to dodge front right obstacle")
+                elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 40:
+                    autopilot.turn(300, -100)
+                    print("Turn to the right to dodge front left obstacle")
                 else:
-                    dodgeDirection = "left"
-                print("Obstacle straight ahead")
-            elif (autopilot.distanceFrontLeft < autopilot.distanceFrontRight):
-                dodgeDirection = 'right'
-                wallSide = 'left'
-                print("Obstacle front left")
-            else:
-                dodgeDirection = 'left'
-                wallSide = 'right'
-                print("Obstacle front right")
-            continue
-        
+                    dodgeObstacle = False
+                continue
+            if (autopilot.distanceFrontLeft < 30 or autopilot.distanceFrontRight < 30):
+                dodgeObstacle = True
+                if (autopilot.distanceFrontLeft < 80 and autopilot.distanceFrontRight < 80):
+                    if (wallSide == "left"):
+                        dodgeDirection = "right"
+                    else:
+                        dodgeDirection = "left"
+                    print("Obstacle straight ahead")
+                elif (autopilot.distanceFrontLeft < autopilot.distanceFrontRight):
+                    dodgeDirection = 'right'
+                    wallSide = 'left'
+                    print("Obstacle front left")
+                else:
+                    dodgeDirection = 'left'
+                    wallSide = 'right'
+                    print("Obstacle front right")
+                continue
+            
         match (stage):
             case 'ballFinding':
                 #ball = imProcessing.getBallCoords(frame)
@@ -142,89 +146,135 @@ def autoControl(): #still partly pseudocode
                     print(f"ball found: x: {ballx}, y: {bally}")
                     autopilot.setDoorState(True)
                     stage = 'ballCatching'
+                    party()
                     continue
                 if (wallSide == 'left' and autopilot.distanceLeft > 50):
                     moveInCircleCounter+=1
-                    autopilot.turn(300, 100)
+                    autopilot.turn(100, 100)
                     print("turn left as no wall is detected on the left")
                 elif (wallSide == 'right' and autopilot.distanceRight > 50):
                     moveInCircleCounter+=1
                     autopilot.turn(100, -100)
+                    print("turn right as no wall is detected on the right")
+                else: 
+                    moveInCircleCounter = 0   
                     
-                
-                autopilot.forward(600, 100)
+                autopilot.forward(500, 100)
                 print("move forward")
             case 'ballCatching':
-                return
                 ball = imProcessing.getBallCoords(frame)
                 if (len(ball) > 0):
                     ballx = ball[0][0]/width
                     bally = ball[0][1]/height
-                    if ballx < 0.4:
-                        autopilot.turn((0.5 - ballx) * TURN_AMOUNT, 100)
-                    elif ballx > 0.6:
-                        autopilot.turn((ballx-0.5) * TURN_AMOUNT, -100)
-                    else:
-                        if bally < 0.8:
-                            autopilot.forward(40, 50)
-                        elif (bally > 0.8):
-                            #fine adjustment:
-                            if ballx < 0.45:
-                                autopilot.turn((0.5 - ballx) * TURN_AMOUNT, 100)
-                            elif ballx > 0.55:
-                                autopilot.turn((ballx-0.5) * TURN_AMOUNT, -100)
-                            else:
-                                autopilot.forward(40, 50)
-
-                    
-                    ballNotFoundCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
+                    print(f"Ball found at x: {ballx} y: {bally}")
                 else:
-                    if (ballNotFoundCounter > 5):
-                        autopilot.forward(100, 100)
+                    print("Capturing ball")
+                    for i in range(0, 2):
+                        autopilot.forward(200, 100)
+                        time.sleep(0.3)
+                    autopilot.setDoorState(False)
+                    party()
+                    stage = 'goalFinding'
+                    continue
+
+
+                    #autopilot.forward(400, -100)
+                    #time.sleep(1)
+                    #ball = imProcessing.getBallCoords(frame)
+                    #if(len(ball) > 0):
+                    #    autopilot.setDoorState(True)
+                    #    continue
+                    
+                if ballx < 0.45:
+                    autopilot.turn((0.5 - ballx) * someconstant, 100)
+                    print("Turned to the left")
+                elif ballx > 0.55:
+                    autopilot.turn((ballx-0.5) * someconstant, -100)
+                    print("Turned to the right")
+                else:
+                    if(bally > 0.925):
+                        print("Capturing ball 2")
+                        for i in range(0, 2):
+                            autopilot.forward(200, 100)
+                            time.sleep(0.3)
                         autopilot.setDoorState(False)
-                        stage = 'goalFinding'
+
+                        #autopilot.forward(400, -100)
+                        #time.sleep(1)
+                        #ball = imProcessing.getBallCoords(frame)
+                        #if(len(ball) > 0):
+                        #    autopilot.setDoorState(True)
+                        #    continue
+                        break
+                    if(bally > 0.75):
+                        autopilot.forward(100, 100)
+                        print("Moved froward for 100ms")
                     else:
-                        ballNotFoundCounter+= 1
+                        autopilot.forward(200, 100)
+                        print("Moved froward for 200ms")
                 
             case 'goalFinding':
-                return
-                imProcessing.setModeToTarget()
-                # TODO: same as ballFinding
-            case 'goalScoring':
-                return
-                # just copied from ballcatching!!!
                 target = imProcessing.getTargetCoords(frame)
-                if (len(target) > 0):
-                    targetx = target[0][0]/width 
-                    # An Fabian in dor Zukunft sobolt die getTarget funktion gmocht isch: isch targetx die mitte?
-                    targety = target[0][1]/height
-                    if targetx < 0.4:
-                        autopilot.turn((0.5 - targetx) * TURN_AMOUNT, 100)
-                    elif targetx > 0.6:
-                        autopilot.turn((targetx-0.5) * TURN_AMOUNT, -100)
-                    else:
-                        if targety < 0.8:
-                            autopilot.forward(100, 100)
-                        elif (targety > 0.8):
-                            #fine adjustment:
-                            if targetx < 0.45:
-                                autopilot.turn((0.5 - targetx) * TURN_AMOUNT, 100)
-                            elif targetx > 0.55:
-                                autopilot.turn((targetx-0.5) * TURN_AMOUNT, -100)
-                            else:
-                                autopilot.forward(100, 100)
-
-                    time.sleep(0.5)
-                    ballNotFoundCounter = 0 # here used to count the frames where imProcessing does not recognize a ball
+                if (target is not None):
+                    goalCenterx = (target[2] / 2 + target[0])/width
+                    goalLowerEdge = (target[1] + target[3])/height
+                    goalUpperEdge = target[1]/height
+                    print(f"Target found at x: {target[0]} y: {target[1]} centerX: {goalCenterx * width} %: {goalCenterx} lower: {goalLowerEdge} upper: {goalUpperEdge}")
+                    party()
+                    stage = 'goalScoring'
                 else:
-                    if (ballNotFoundCounter > 10):
-                        autopilot.doorState(True)
-                        autopilot.forward(100, 100)
-                        autopilot.forward(10, -100)
-                        # now: PARTY!!!
+                    if (wallSide == 'left' and autopilot.distanceLeft > 50):
+                        moveInCircleCounter+=1
+                        autopilot.turn(100, 100)
+                        print("turn left as no wall is detected on the left")
+                    elif (wallSide == 'right' and autopilot.distanceRight > 50):
+                        moveInCircleCounter+=1
+                        autopilot.turn(100, -100)
+                        print("turn right as no wall is detected on the right")
+                    else: 
+                        moveInCircleCounter = 0   
+                autopilot.forward(500, 100)
+                print("move forward")
+                
+            case 'goalScoring':
+                target = imProcessing.getTargetCoords(frame)
+                if (target is None):
+                    print("Lost the target")
+                    break
+
+                goalCenterx = (target[2] / 2 + target[0])/width
+                goalLowerEdge = (target[1] + target[3])/height
+                goalUpperEdge = target[1]/height
+                print(f"Target found at x: {target[0]} y: {target[1]} centerX: {goalCenterx * width} %: {goalCenterx} lower: {goalLowerEdge} upper: {goalUpperEdge}")
+                if goalCenterx < 0.45:
+                    autopilot.turn((0.5 - goalCenterx) * someconstant, 100)
+                    print("Turned to the left")
+                elif goalCenterx > 0.55:
+                    autopilot.turn((goalCenterx-0.5) * someconstant, -100)
+                    print("Turned to the right")
+                else:
+                    if inFrontOfGoal:
+                        print("Shooting")
+                        autopilot.setDoorState(True)
+                        autopilot.forward(200, 100)
+                        time.sleep(1)
+                        autopilot.forward(200, 100)
+                        autopilot.setDoorState(False)
+                        break
+                    elif goalUpperEdge < 0.65:
+                        autopilot.forward(400, 75)
+                        
+                        print("moved forward for 400ms")
+                    #elif (goalUpperEdge > 0.1):
+                    #    autopilot.forward(200, 75)
+                    #    
+                    #    print("moved forward for 200ms")
                     else:
-                        time.sleep(0.1)
-                        ballNotFoundCounter+= 1
+                        print("backing away for shooting")
+                        inFrontOfGoal = True
+                        autopilot.forward(200, -100)
+                    
+                time.sleep(1)
             case _:
                 print("No clue what's happening anymore (stage matching error in autoControl() )")
     
@@ -237,8 +287,7 @@ def autoControl(): #still partly pseudocode
 
     #"""LOCAL (Fabian) ---------------------------------------------
     print(f"w: {width} h: {height}")
-    someconstant = 600
-    goalCenterx = None
+    
 
     #"""
     # searching ball:
