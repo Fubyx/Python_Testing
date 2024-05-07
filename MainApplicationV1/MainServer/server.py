@@ -24,6 +24,16 @@ imProcessing = ImageProcessing()
 
 autopilot = Autopilot()
 
+def display_frame(): # not needed in production
+    global frame
+    while True:
+        if frame is not None:
+            cv2.imshow('Camera Stream', frame)
+            if cv2.waitKey(1) == ord('q'):  # Exit on 'q' key press
+                break
+
+threading.Thread(target=display_frame, daemon=True).start()  # Start display thread
+
 @app.route('/setpiurl')
 def setPiUrl():
     global autopilot
@@ -32,6 +42,7 @@ def setPiUrl():
     return Response('success')
 
 def autoControl(): #still partly pseudocode
+    print("Autopilot started ---------------------------------------")
     global autopilot
     global frame
     global imProcessing
@@ -55,7 +66,7 @@ def autoControl(): #still partly pseudocode
     bally = None
     ball = []
     height, width, _ = frame.shape 
-    """Incoming#----------------------------------
+    #"""Incoming#----------------------------------
     TURN_AMOUNT = 50
 
     stage = 'ballFinding'
@@ -67,34 +78,51 @@ def autoControl(): #still partly pseudocode
     while not autopilot.stopped:
         time.sleep(0.5) # time to let the camera capture not blurry images 
 
-
-        #"" # Removed as this functionality is already added to recieve_frame
-        if (prevLigths != (average_brightness < 100)):
-            prevLigths = (average_brightness < 100)
-            imProcessing.setLightLevel(prevLigths)
-            autopilot.lights = prevLigths
+        print(f"\n\ndistance front right: {autopilot.distanceFrontRight} \n" +
+              f"distance front left: {autopilot.distanceFrontLeft} \n" +
+              f"distance right: {autopilot.distanceRight} \n" +
+              f"distance left: {autopilot.distanceLeft} \n" +
+              f"distance back: {autopilot.distanceBack}" 
+              )
+        # Removed as this functionality is already added to recieve_frame
+        #if (prevLigths != (average_brightness < 100)):
+        #    prevLigths = (average_brightness < 100)
+        #    imProcessing.setLightLevel(prevLigths)
+        #    autopilot.lights = prevLigths
 
         # TODO: reacting to distance sencor data!
         if dodgeObstacle:
             if dodgeDirection == 'left' and autopilot.distanceFrontRight < 30:
-                    autopilot.turn(100, 100)
+                autopilot.turn(300, 100)
+                print("Turn to the left to dodge front right obstacle")
             elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 30:
-                    autopilot.turn(100, -100)
+                autopilot.turn(300, -100)
+                print("Turn to the right to dodge front left obstacle")
             else:
                 dodgeObstacle = False
             continue
-        if (autopilot.distanceFrontLeft < 10 or autopilot.distanceFrontRight < 10):
+        if (autopilot.distanceFrontLeft < 20 or autopilot.distanceFrontRight < 20):
             dodgeObstacle = True
-            if (autopilot.distanceFrontLeft < autopilot.distanceFrontRight):
+            if (autopilot.distanceFrontLeft < 20 and autopilot.distanceFrontRight < 20):
+                if (wallSide == "left"):
+                    dodgeDirection = "right"
+                else:
+                    dodgeDirection = "left"
+                print("Obstacle straight ahead")
+            elif (autopilot.distanceFrontLeft < autopilot.distanceFrontRight):
                 dodgeDirection = 'right'
                 wallSide = 'left'
+                print("Obstacle front left")
             else:
                 dodgeDirection = 'left'
                 wallSide = 'right'
+                print("Obstacle front right")
+            continue
         
         match (stage):
             case 'ballFinding':
-                ball = imProcessing.getBallCoords(frame)
+                #ball = imProcessing.getBallCoords(frame)
+                ball = []
                 if (len(ball) > 0):  
                     ballx = ball[0][0]/width
                     bally = ball[0][1]/height
@@ -103,11 +131,15 @@ def autoControl(): #still partly pseudocode
                     stage = 'ballCatching'
                     continue
                 if (wallSide == 'left' and autopilot.distanceLeft > 20):
-                    autopilot.turn(100, 100)
+                    autopilot.turn(300, 100)
+                    print("turn left as no wall is detected on the left")
                 elif (wallSide == 'right' and autopilot.distanceRight > 20):
-                    autopilot.turn(100, -100)
+                    autopilot.turn(300, -100)
+                    print("turn right as no wall is detected on the right")
                 autopilot.forward(300, 100)
+                print("move forward")
             case 'ballCatching':
+                return
                 ball = imProcessing.getBallCoords(frame)
                 if (len(ball) > 0):
                     ballx = ball[0][0]/width
@@ -139,9 +171,11 @@ def autoControl(): #still partly pseudocode
                         ballNotFoundCounter+= 1
                 
             case 'goalFinding':
+                return
                 imProcessing.setModeToTarget()
                 # TODO: same as ballFinding
             case 'goalScoring':
+                return
                 # just copied from ballcatching!!!
                 target = imProcessing.getTargetCoords(frame)
                 if (len(target) > 0):
@@ -187,10 +221,10 @@ def autoControl(): #still partly pseudocode
 
     #"""LOCAL (Fabian) ---------------------------------------------
     print(f"w: {width} h: {height}")
-    someconstant = 400
+    someconstant = 600
     goalCenterx = None
 
-    """
+    #"""
     # searching ball:
     ballFound = False
     while (not autopilot.stopped) and (not ballFound):
@@ -212,19 +246,51 @@ def autoControl(): #still partly pseudocode
         if (len(ball) > 0):
             ballx = ball[0][0]/width
             bally = ball[0][1]/height
+            print(f"Ball found at x: {ballx} y: {bally}")
         else:
-            autopilot.forward(200, 60)
+            print("Capturing ball")
+            for i in range(0, 2):
+                autopilot.forward(200, 100)
+                time.sleep(0.3)
             autopilot.setDoorState(False)
+
+            autopilot.setDoorState(False)
+
+            
+            #autopilot.forward(400, -100)
+            #time.sleep(1)
+            #ball = imProcessing.getBallCoords(frame)
+            #if(len(ball) > 0):
+            #    autopilot.setDoorState(True)
+            #    continue
             break
-        if ballx < 0.44:
+        if ballx < 0.45:
             autopilot.turn((0.5 - ballx) * someconstant, 100)
+            print("Turned to the left")
         elif ballx > 0.55:
             autopilot.turn((ballx-0.5) * someconstant, -100)
+            print("Turned to the right")
         else:
-            if bally < 0.8:
-                autopilot.forward(400, 75)
-            elif (bally > 0.8):
-                autopilot.forward(400, 75)
+            if(bally > 0.925):
+                print("Capturing ball 2")
+                for i in range(0, 2):
+                    autopilot.forward(200, 100)
+                    time.sleep(0.3)
+                autopilot.setDoorState(False)
+
+                #autopilot.forward(400, -100)
+                #time.sleep(1)
+                #ball = imProcessing.getBallCoords(frame)
+                #if(len(ball) > 0):
+                #    autopilot.setDoorState(True)
+                #    continue
+                break
+            if(bally > 0.75):
+                autopilot.forward(100, 100)
+                print("Moved froward for 100ms")
+            else:
+                autopilot.forward(200, 100)
+                print("Moved froward for 200ms")
                 
         time.sleep(1)
         ballx = None
@@ -387,7 +453,16 @@ def controls():
             autopilot.stop()
             autopilot.stopped = True
         if (autopilot.pi_URL is not None):
-            response = requests.post(autopilot.pi_URL, json={
+            if(verticalSpeed > 0 or rotationalSpeed > 0):
+                response = requests.post(autopilot.pi_URL, json={
+                'verticalSpeed': verticalSpeed, 
+                'rotationalSpeed' : rotationalSpeed, 
+                'lightsState': autopilot.lights, 
+                'doorState': autopilot.doorState,
+                'duration': -1
+                })
+            else:
+                response = requests.post(autopilot.pi_URL, json={
                 'verticalSpeed': verticalSpeed, 
                 'rotationalSpeed' : rotationalSpeed, 
                 'lightsState': autopilot.lights, 
