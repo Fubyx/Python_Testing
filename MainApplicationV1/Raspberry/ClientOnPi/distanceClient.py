@@ -1,6 +1,7 @@
 import requests  # Import requests library
 import RPi.GPIO as GPIO
 import time
+import threading
 
 """
 from gpiozero import DistanceSensor
@@ -38,20 +39,32 @@ SERVER_IP = "192.168.86.113"
 SERVER_PORT = 5000
 SERVER_URL = "http://" + SERVER_IP + ':' + str(SERVER_PORT) + "/distanceData"
 
+
+wait = True
+
+def timer():
+    global wait
+    time.sleep(0.1)
+    wait = False
+
 def read(pin):
+    global wait
+    wait = True
     GPIO.output(TRIG, True)
     time.sleep(0.00001)
     GPIO.output(TRIG, False)
 
-    while GPIO.input(pin)==0:
+    t = threading.Thread(target=timer)
+    t.start()
+
+    while GPIO.input(pin)==0 and wait:
         pass
     pulse_start = time.time()
-    print('aft')
-    while GPIO.input(pin)==1:
+    while GPIO.input(pin)==1 and wait:
         pass
-    pulse_end = time.time()  
-    print('aftaft')
+    pulse_end = time.time() 
     pulse_duration = pulse_end - pulse_start
+    t.join()
     return round(pulse_duration * 17150, 2) # in cm
 
 def capture_and_send_data():
@@ -59,13 +72,9 @@ def capture_and_send_data():
         try:
 
             distanceFrontLeft = read(ECHO_FRONT_LEFT)
-            time.sleep(0.01)
             distanceFrontRight = read(ECHO_FRONT_RIGHT)
-            time.sleep(0.01)
             distanceLeft = read(ECHO_LEFT)
-            time.sleep(0.01)
             distanceRight = read(ECHO_RIGHT)
-            time.sleep(0.01)
             distanceBack = read(ECHO_BACK)
 
             response = requests.post(SERVER_URL, json={'distanceFrontLeft' : distanceFrontLeft, 'distanceFrontRight' : distanceFrontRight, 'distanceLeft' : distanceLeft, 'distanceRight' : distanceRight, 'distanceBack' : distanceBack})

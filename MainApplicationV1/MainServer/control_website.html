@@ -68,14 +68,21 @@
                     <span class="slider"></span>
                 </label>
             </div>
+            <div class="switchBox">
+                Stream:
+                <label class="switch">
+                    <input type="checkbox" checked id="doorState" onclick="toggleStream()">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
         <canvas id="canvas" class="ignoreWhenAuto" name="controls"></canvas>
     </div>
     <script>
-        let imgSrc = "http://192.168.86.113:5000/img";
-        let controlSrc = "http://192.168.86.113:5000/controls";
-        let piDataSrc = "http://192.168.86.113:5000/pidata";
+        let imgSrc = "http://10.10.31.11:5000/img";
+        let controlSrc = "http://10.10.31.11:5000/controls";
+        let piDataSrc = "http://10.10.31.11:5000/pidata";
         // my ip in Fuby's hotspog: 192.168.86.51
 
         var canvas, ctx;
@@ -173,7 +180,8 @@
             x_relative = 0;
             y_relative = 0;
 
-            setTimeout(sendData, 10);
+            sendData();
+            setTimeout(sendData, 50);
 
             document.getElementById("x_coordinate").innerText = 0;
             document.getElementById("y_coordinate").innerText = 0;
@@ -295,16 +303,28 @@
                 console.log("test");
             }
         }
-        
+
+
         function updateImage() {
             document.getElementById('camImage').src = imgSrc + '?' + Date.now();
         }
         //window.setInterval(sendData, 200);
-        window.setInterval(updateImage, 50);
+        imgUpdate = window.setInterval(updateImage, 50);
         window.setInterval(getPiData, 100);
 
-        function handleMovement(e){
-            if(e.key == 'w'){
+        imgUpdateToggle = False;
+        function toggleStream() {
+            if (imgUpdateToggle) {
+                imgUpdate = window.setInterval(updateImage, 50);
+                document.getElementById('camImage').visibility = 'visible';
+            } else {
+                clearInterval(imgUpdate);
+                document.getElementById('camImage').visibility = 'hidden';
+            }
+
+        }
+        function handleMovement(e) {
+            if (e.key == 'w') {
                 try {
                     fetch(controlSrc, {
                         method: 'POST',
@@ -323,7 +343,7 @@
                 } catch (err) {
                     console.log("test");
                 }
-            }else if(e.key == 's'){
+            } else if (e.key == 's') {
                 try {
                     fetch(controlSrc, {
                         method: 'POST',
@@ -341,12 +361,12 @@
                     });
                 } catch (err) {
                     console.log("test");
-                } 
+                }
             }
-            
+
         }
-        function handleMovement2(e){
-            if(e.key == 'w'){
+        function handleMovement(e) {
+            if (e.key == 'w') {
                 try {
                     fetch(controlSrc, {
                         method: 'POST',
@@ -365,7 +385,7 @@
                 } catch (err) {
                     console.log("test");
                 }
-            }else if(e.key == 's'){
+            } else if (e.key == 's') {
                 try {
                     fetch(controlSrc, {
                         method: 'POST',
@@ -383,9 +403,9 @@
                     });
                 } catch (err) {
                     console.log("test");
-                } 
+                }
             }
-            
+
         }
         window.addEventListener('keydown', handleMovement);
         window.addEventListener('keyup', handleMovement2);
