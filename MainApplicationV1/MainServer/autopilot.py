@@ -3,7 +3,7 @@ import requests
 
 class Autopilot:
 
-    pi_URL = None
+    pi_URL = "http://192.168.86.30:5000/controls"
     stopped = True
     enabled = False
     lights = 0 # 0 = Light (lights off); 1 = dark (lights on)

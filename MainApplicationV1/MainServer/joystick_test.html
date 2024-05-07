@@ -333,6 +333,7 @@
                             ', "doorState" :' + document.getElementById("doorState").checked +
                             ', "autopilot" :' + document.getElementById("autopilotState").checked +
                             ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            ', "doorColor" : "' + document.getElementById("doorColor").value + '"' +
                             '}',
                         headers: {
                             'Content-Type': 'text/plain'
@@ -344,7 +345,7 @@
             }
             
         }
-        function handleMovement(e){
+        function handleMovement2(e){
             if(e.key == 'w'){
                 try {
                     fetch(controlSrc, {
@@ -355,6 +356,7 @@
                             ', "doorState" :' + document.getElementById("doorState").checked +
                             ', "autopilot" :' + document.getElementById("autopilotState").checked +
                             ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            ', "doorColor" : "' + document.getElementById("doorColor").value + '"' +
                             '}',
                         headers: {
                             'Content-Type': 'text/plain'
@@ -373,6 +375,7 @@
                             ', "doorState" :' + document.getElementById("doorState").checked +
                             ', "autopilot" :' + document.getElementById("autopilotState").checked +
                             ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            ', "doorColor" : "' + document.getElementById("doorColor").value + '"' +
                             '}',
                         headers: {
                             'Content-Type': 'text/plain'
