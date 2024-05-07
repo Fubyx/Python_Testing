@@ -163,8 +163,8 @@ class ImageProcessing():
         if(self.lightlevel == 0):
             match(color):
                 case "blue":
-                    self.ball_lowercolor = np.array([190/2, 30*255/100, 25*255/100])
-                    self.ball_uppercolor = np.array([235/2, 90*255/100, 60*255/100])
+                    self.ball_lowercolor = np.array([190/2, 30*255/100, 5*255/100])
+                    self.ball_uppercolor = np.array([235/2, 100*255/100, 60*255/100])
                 case "pink":
                     self.ball_lowercolor = np.array([320/2, 30*255/100, 50*255/100])
                     self.ball_uppercolor = np.array([330/2, 50*255/100, 90*255/100])

@@ -82,7 +82,7 @@ def autoControl(): #still partly pseudocode
     inFrontOfGoal = False
 
     while not autopilot.stopped:
-        time.sleep(2) # time to let the camera capture not blurry images 
+        time.sleep(1) # time to let the camera capture not blurry images 
 
         print(f"\n\ndistance front right: {autopilot.distanceFrontRight} \n" +
               f"distance front left: {autopilot.distanceFrontLeft} \n" +
@@ -90,56 +90,39 @@ def autoControl(): #still partly pseudocode
               f"distance left: {autopilot.distanceLeft} \n" +
               f"distance back: {autopilot.distanceBack}" 
               )
-        if stage != 'goalScoring':
-            if (moveInCircleCounter > 10):
-                wallSide = None
-            if (wallSide == 'left' and autopilot.distanceLeft < 10):
-                moveInCircleCounter = 0
-                autopilot.turn(100, -100)
-                print("turn right as wall is detected too close on the left") 
-            elif (wallSide == 'right' and autopilot.distanceRight < 10):
-                moveInCircleCounter = 0
-                autopilot.turn(100, 100)
-                print("turn left as wall is detected too close on the right")
+    
+        if (moveInCircleCounter > 10):
+            wallSide = None
+        if (wallSide == 'left' and autopilot.distanceLeft < 10):
+            moveInCircleCounter = 0
+            autopilot.turn(100, -100)
+            print("turn right as wall is detected too close on the left") 
+        elif (wallSide == 'right' and autopilot.distanceRight < 10):
+            moveInCircleCounter = 0
+            autopilot.turn(100, 100)
+            print("turn left as wall is detected too close on the right")
 
-            # Removed as this functionality is already added to recieve_frame
-            #if (prevLigths != (average_brightness < 100)):
-            #    prevLigths = (average_brightness < 100)
-            #    imProcessing.setLightLevel(prevLigths)
-            #    autopilot.lights = prevLigths
+        # Removed as this functionality is already added to recieve_frame
+        #if (prevLigths != (average_brightness < 100)):
+        #    prevLigths = (average_brightness < 100)
+        #    imProcessing.setLightLevel(prevLigths)
+        #    autopilot.lights = prevLigths
 
-            if dodgeObstacle:
-                if dodgeDirection == 'left' and autopilot.distanceFrontRight < 40:
-                    autopilot.turn(300, 100)
-                    print("Turn to the left to dodge front right obstacle")
-                elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 40:
-                    autopilot.turn(300, -100)
-                    print("Turn to the right to dodge front left obstacle")
-                else:
-                    dodgeObstacle = False
-                continue
-            if (autopilot.distanceFrontLeft < 30 or autopilot.distanceFrontRight < 30):
-                dodgeObstacle = True
-                if (autopilot.distanceFrontLeft < 80 and autopilot.distanceFrontRight < 80):
-                    if (wallSide == "left"):
-                        dodgeDirection = "right"
-                    else:
-                        dodgeDirection = "left"
-                    print("Obstacle straight ahead")
-                elif (autopilot.distanceFrontLeft < autopilot.distanceFrontRight):
-                    dodgeDirection = 'right'
-                    wallSide = 'left'
-                    print("Obstacle front left")
-                else:
-                    dodgeDirection = 'left'
-                    wallSide = 'right'
-                    print("Obstacle front right")
-                continue
+        if dodgeObstacle:
+            if dodgeDirection == 'left' and autopilot.distanceFrontRight < 40:
+                autopilot.turn(300, 100)
+                print("Turn to the left to dodge front right obstacle")
+            elif dodgeDirection == 'right' and autopilot.distanceFrontLeft < 40:
+                autopilot.turn(300, -100)
+                print("Turn to the right to dodge front left obstacle")
+            else:
+                dodgeObstacle = False
+            continue
+       
             
         match (stage):
             case 'ballFinding':
-                #ball = imProcessing.getBallCoords(frame)
-                ball = []
+                ball = imProcessing.getBallCoords(frame)
                 if (len(ball) > 0):  
                     ballx = ball[0][0]/width
                     bally = ball[0][1]/height
@@ -147,6 +130,23 @@ def autoControl(): #still partly pseudocode
                     autopilot.setDoorState(True)
                     stage = 'ballCatching'
                     party()
+                    continue
+                if (autopilot.distanceFrontLeft < 30 or autopilot.distanceFrontRight < 30):
+                    dodgeObstacle = True
+                    if (autopilot.distanceFrontLeft < 80 and autopilot.distanceFrontRight < 80):
+                        if (wallSide == "left"):
+                            dodgeDirection = "right"
+                        else:
+                            dodgeDirection = "left"
+                        print("Obstacle straight ahead")
+                    elif (autopilot.distanceFrontLeft < autopilot.distanceFrontRight):
+                        dodgeDirection = 'right'
+                        wallSide = 'left'
+                        print("Obstacle front left")
+                    else:
+                        dodgeDirection = 'left'
+                        wallSide = 'right'
+                        print("Obstacle front right")
                     continue
                 if (wallSide == 'left' and autopilot.distanceLeft > 50):
                     moveInCircleCounter+=1
@@ -168,6 +168,7 @@ def autoControl(): #still partly pseudocode
                     bally = ball[0][1]/height
                     print(f"Ball found at x: {ballx} y: {bally}")
                 else:
+
                     print("Capturing ball")
                     for i in range(0, 2):
                         autopilot.forward(200, 100)
