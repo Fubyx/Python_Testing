@@ -68,6 +68,13 @@
                     <span class="slider"></span>
                 </label>
             </div>
+            <div class="switchBox">
+                Stream:
+                <label class="switch">
+                    <input type="checkbox" checked id="doorState" onclick="toggleStream()">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
         <canvas id="canvas" class="ignoreWhenAuto" name="controls"></canvas>
@@ -173,7 +180,8 @@
             x_relative = 0;
             y_relative = 0;
 
-            setTimeout(sendData, 10);
+            sendData();
+            setTimeout(sendData, 50);
 
             document.getElementById("x_coordinate").innerText = 0;
             document.getElementById("y_coordinate").innerText = 0;
@@ -295,16 +303,28 @@
                 console.log("test");
             }
         }
-        
+
+
         function updateImage() {
             document.getElementById('camImage').src = imgSrc + '?' + Date.now();
         }
         //window.setInterval(sendData, 200);
-        window.setInterval(updateImage, 50);
+        imgUpdate = window.setInterval(updateImage, 50);
         window.setInterval(getPiData, 100);
 
-        function handleMovement(e){
-            if(e.key == 'w'){
+        imgUpdateToggle = False;
+        function toggleStream() {
+            if (imgUpdateToggle) {
+                imgUpdate = window.setInterval(updateImage, 50);
+                document.getElementById('camImage').visibility = 'visible';
+            } else {
+                clearInterval(imgUpdate);
+                document.getElementById('camImage').visibility = 'hidden';
+            }
+
+        }
+        function handleMovement(e) {
+            if (e.key == 'w') {
                 try {
                     fetch(controlSrc, {
                         method: 'POST',
@@ -323,7 +343,7 @@
                 } catch (err) {
                     console.log("test");
                 }
-            }else if(e.key == 's'){
+            } else if (e.key == 's') {
                 try {
                     fetch(controlSrc, {
                         method: 'POST',
@@ -333,28 +353,7 @@
                             ', "doorState" :' + document.getElementById("doorState").checked +
                             ', "autopilot" :' + document.getElementById("autopilotState").checked +
                             ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
-                            '}',
-                        headers: {
-                            'Content-Type': 'text/plain'
-                        }
-                    });
-                } catch (err) {
-                    console.log("test");
-                } 
-            }
-            
-        }
-        function handleMovement(e){
-            if(e.key == 'w'){
-                try {
-                    fetch(controlSrc, {
-                        method: 'POST',
-                        body: '{"verticalSpeed" :' + 0 +
-                            ', "rotationalSpeed" :' + 0 +
-                            ', "lightsState" : ' + document.getElementById("lightsState").checked +
-                            ', "doorState" :' + document.getElementById("doorState").checked +
-                            ', "autopilot" :' + document.getElementById("autopilotState").checked +
-                            ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            ', "doorColor" : "' + document.getElementById("doorColor").value + '"' +
                             '}',
                         headers: {
                             'Content-Type': 'text/plain'
@@ -363,7 +362,11 @@
                 } catch (err) {
                     console.log("test");
                 }
-            }else if(e.key == 's'){
+            }
+
+        }
+        function handleMovement(e) {
+            if (e.key == 'w') {
                 try {
                     fetch(controlSrc, {
                         method: 'POST',
@@ -373,6 +376,7 @@
                             ', "doorState" :' + document.getElementById("doorState").checked +
                             ', "autopilot" :' + document.getElementById("autopilotState").checked +
                             ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            ', "doorColor" : "' + document.getElementById("doorColor").value + '"' +
                             '}',
                         headers: {
                             'Content-Type': 'text/plain'
@@ -380,9 +384,28 @@
                     });
                 } catch (err) {
                     console.log("test");
-                } 
+                }
+            } else if (e.key == 's') {
+                try {
+                    fetch(controlSrc, {
+                        method: 'POST',
+                        body: '{"verticalSpeed" :' + 0 +
+                            ', "rotationalSpeed" :' + 0 +
+                            ', "lightsState" : ' + document.getElementById("lightsState").checked +
+                            ', "doorState" :' + document.getElementById("doorState").checked +
+                            ', "autopilot" :' + document.getElementById("autopilotState").checked +
+                            ', "ballColor" : "' + document.getElementById("ballColor").value + '"' +
+                            ', "doorColor" : "' + document.getElementById("doorColor").value + '"' +
+                            '}',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        }
+                    });
+                } catch (err) {
+                    console.log("test");
+                }
             }
-            
+
         }
         window.addEventListener('keydown', handleMovement);
         window.addEventListener('keyup', handleMovement2);
