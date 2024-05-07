@@ -205,20 +205,20 @@ class ImageProcessing():
         if (self.lightlevel == 0):
             match color:
                 case "blue":
-                    #self.target_lowercolor = np.array([190/2, 70*255/100, 70*255/100])
-                    #self.target_uppercolor = np.array([205/2, 100*255/100, 100*255/100])
-                    self.target_lowercolor = np.array([175/2, 80*255/100, 30*255/100])
-                    self.target_uppercolor = np.array([230/2, 100*255/100, 100*255/100])
+                    self.target_lowercolor = np.array([180/2, 80*255/100, 30*255/100])
+                    self.target_uppercolor = np.array([220/2, 100*255/100, 50*255/100])
                 case "red":
-                    self.target_lowercolor = np.array([5/2, 70*255/100, 70*255/100])
-                    self.target_uppercolor = np.array([20/2, 100*255/100, 100*255/100])
+                    self.target_lowercolor = np.array([340/2, 60*255/100, 25*255/100])
+                    self.target_uppercolor = np.array([359/2, 90*255/100, 50*255/100])
+                    self.target_lowercolor_2 = np.array([0/2, 60*255/100, 25*255/100])
+                    self.target_uppercolor_2 = np.array([15/2, 90*255/100, 50*255/100])
                 
                 case "green":
-                    self.target_lowercolor = np.array([105/2, 30*255/100, 65*255/100])
-                    self.target_uppercolor = np.array([120/2, 50*255/100, 80*255/100])
+                    self.target_lowercolor = np.array([100/2, 50*255/100, 30*255/100])
+                    self.target_uppercolor = np.array([140/2, 75*255/100, 50*255/100])
                 case "yellow":
-                    self.target_lowercolor = np.array([50/2, 80*255/100, 80*255/100])
-                    self.target_uppercolor = np.array([65/2, 100*255/100, 100*255/100])
+                    self.target_lowercolor = np.array([60/2, 75*255/100, 50*255/100])
+                    self.target_uppercolor = np.array([80/2, 100*255/100, 70*255/100])
         else:
             match color:
                 case "green":
@@ -244,7 +244,7 @@ class ImageProcessing():
     def getTargetCoords(self, frame):
         self.frame = frame
         contours = self.getContours(
-            self.applyColorMask(self.frame, self.target_lowercolor, self.target_uppercolor)
+            self.applyColorMask(self.frame, self.target_lowercolor, self.target_uppercolor, self.target_lowercolor_2, self.target_uppercolor_2)
         )
         for c in contours:
             x, y, w, h = cv2.boundingRect(c)
