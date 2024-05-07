@@ -90,20 +90,18 @@ def autoControl(): #still partly pseudocode
         if (wallSide == 'left' and autopilot.distanceLeft < 10):
             moveInCircleCounter = 0
             autopilot.turn(100, -100)
-            print("turn right wall ist detected too close on the left") 
+            print("turn right wall is detected too close on the left") 
         elif (wallSide == 'right' and autopilot.distanceRight < 10):
             moveInCircleCounter = 0
-            autopilot.turn(300, 100)
-            print("turn right as no wall is detected on the left")
-        else: 
-            moveInCircleCounter = 0
+            autopilot.turn(100, 100)
+            print("turn left as wall is detected too close on the right")
+        
         # Removed as this functionality is already added to recieve_frame
         #if (prevLigths != (average_brightness < 100)):
         #    prevLigths = (average_brightness < 100)
         #    imProcessing.setLightLevel(prevLigths)
         #    autopilot.lights = prevLigths
 
-        # TODO: reacting to distance sencor data!
         if dodgeObstacle:
             if dodgeDirection == 'left' and autopilot.distanceFrontRight < 40:
                 autopilot.turn(300, 100)
@@ -116,7 +114,7 @@ def autoControl(): #still partly pseudocode
             continue
         if (autopilot.distanceFrontLeft < 30 or autopilot.distanceFrontRight < 30):
             dodgeObstacle = True
-            if (autopilot.distanceFrontLeft < 40 and autopilot.distanceFrontRight < 40):
+            if (autopilot.distanceFrontLeft < 80 and autopilot.distanceFrontRight < 80):
                 if (wallSide == "left"):
                     dodgeDirection = "right"
                 else:
@@ -145,14 +143,15 @@ def autoControl(): #still partly pseudocode
                     continue
                 if (wallSide == 'left' and autopilot.distanceLeft > 50):
                     moveInCircleCounter+=1
-                    autopilot.turn(300, 100)
+                    autopilot.turn(100, 100)
                     print("turn left as no wall is detected on the left")
                 elif (wallSide == 'right' and autopilot.distanceRight > 50):
                     moveInCircleCounter+=1
                     autopilot.turn(100, -100)
-                    
+                else: 
+                    moveInCircleCounter = 0   
                 
-                autopilot.forward(600, 100)
+                autopilot.forward(500, 100)
                 print("move forward")
             case 'ballCatching':
                 return
