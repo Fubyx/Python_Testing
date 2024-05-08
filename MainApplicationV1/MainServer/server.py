@@ -43,6 +43,22 @@ def setPiUrl():
 
 def party():
     global autopilot
+    autopilot.setLightsState(1)
+    time.sleep(0.25)
+    autopilot.setLightsState(0)
+    time.sleep(0.25)
+    autopilot.setLightsState(1)
+    time.sleep(0.25)
+    autopilot.setLightsState(0)
+    time.sleep(0.25)
+    autopilot.setLightsState(1)
+    time.sleep(0.25)
+    autopilot.setLightsState(0)
+    time.sleep(0.25)
+    autopilot.setLightsState(1)
+    time.sleep(0.25)
+    autopilot.setLightsState(0)
+    time.sleep(0.25)
 
 def autoControl(): #still partly pseudocode
     print("Autopilot started ---------------------------------------")
@@ -77,7 +93,7 @@ def autoControl(): #still partly pseudocode
     dodgeDirection = None
     wallSide = None
     moveInCircleCounter = 0
-    someconstant = 600
+    someconstant = 400
     goalCenterx = None
     inFrontOfGoal = False
 
@@ -170,9 +186,10 @@ def autoControl(): #still partly pseudocode
                 else:
 
                     print("Capturing ball")
-                    for i in range(0, 2):
-                        autopilot.forward(200, 100)
-                        time.sleep(0.3)
+                    #for i in range(0, 2):
+                    #    autopilot.forward(200, 100)
+                    #    time.sleep(0.3)
+                    autopilot.forward(500, 70)
                     autopilot.setDoorState(False)
                     party()
                     stage = 'goalFinding'
@@ -195,10 +212,13 @@ def autoControl(): #still partly pseudocode
                 else:
                     if(bally > 0.925):
                         print("Capturing ball 2")
-                        for i in range(0, 2):
-                            autopilot.forward(200, 100)
-                            time.sleep(0.3)
+                        #for i in range(0, 2):
+                        #    autopilot.forward(200, 100)
+                        #    time.sleep(0.3)
+                        autopilot.forward(500, 70)
                         autopilot.setDoorState(False)
+                        party()
+                        stage = 'goalFinding'
 
                         #autopilot.forward(400, -100)
                         #time.sleep(1)
@@ -206,15 +226,16 @@ def autoControl(): #still partly pseudocode
                         #if(len(ball) > 0):
                         #    autopilot.setDoorState(True)
                         #    continue
-                        break
+                        continue
                     if(bally > 0.75):
-                        autopilot.forward(100, 100)
+                        autopilot.forward(200, 100)
                         print("Moved froward for 100ms")
                     else:
-                        autopilot.forward(200, 100)
+                        autopilot.forward(400, 100)
                         print("Moved froward for 200ms")
                 
             case 'goalFinding':
+                someconstant = 600
                 target = imProcessing.getTargetCoords(frame)
                 if (target is not None):
                     goalCenterx = (target[2] / 2 + target[0])/width
