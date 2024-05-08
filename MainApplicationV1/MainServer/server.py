@@ -44,21 +44,21 @@ def setPiUrl():
 def party():
     global autopilot
     autopilot.setLightsState(1)
-    time.sleep(0.25)
+    time.sleep(0.1)
     autopilot.setLightsState(0)
-    time.sleep(0.25)
+    time.sleep(0.1)
     autopilot.setLightsState(1)
-    time.sleep(0.25)
+    time.sleep(0.1)
     autopilot.setLightsState(0)
-    time.sleep(0.25)
+    time.sleep(0.1)
     autopilot.setLightsState(1)
-    time.sleep(0.25)
+    time.sleep(0.1)
     autopilot.setLightsState(0)
-    time.sleep(0.25)
+    time.sleep(0.1)
     autopilot.setLightsState(1)
-    time.sleep(0.25)
+    time.sleep(0.1)
     autopilot.setLightsState(0)
-    time.sleep(0.25)
+    time.sleep(0.1)
 
 def autoControl(): #still partly pseudocode
     print("Autopilot started ---------------------------------------")
@@ -91,9 +91,9 @@ def autoControl(): #still partly pseudocode
     stage = 'ballFinding'
     dodgeObstacle = False
     dodgeDirection = None
-    wallSide = None
+    wallSide = "right"
     moveInCircleCounter = 0
-    someconstant = 400
+    someconstant = 800
     goalCenterx = None
     inFrontOfGoal = False
 
@@ -109,13 +109,14 @@ def autoControl(): #still partly pseudocode
     
         if (moveInCircleCounter > 10):
             wallSide = None
+
         if (wallSide == 'left' and autopilot.distanceLeft < 10):
             moveInCircleCounter = 0
-            autopilot.turn(100, -100)
+            autopilot.turn(200, -100)
             print("turn right as wall is detected too close on the left") 
         elif (wallSide == 'right' and autopilot.distanceRight < 10):
             moveInCircleCounter = 0
-            autopilot.turn(100, 100)
+            autopilot.turn(200, 100)
             print("turn left as wall is detected too close on the right")
 
         if dodgeObstacle:
@@ -139,7 +140,6 @@ def autoControl(): #still partly pseudocode
                     print(f"ball found: x: {ballx}, y: {bally}")
                     autopilot.setDoorState(True)
                     stage = 'ballCatching'
-                    party()
                     continue
                 if (autopilot.distanceFrontLeft < 30 or autopilot.distanceFrontRight < 30):
                     dodgeObstacle = True
@@ -160,51 +160,32 @@ def autoControl(): #still partly pseudocode
                     continue
                 if (wallSide == 'left' and autopilot.distanceLeft > 50):
                     moveInCircleCounter+=1
-                    autopilot.turn(100, 100)
+                    autopilot.turn(400, 100)
                     print("turn left as no wall is detected on the left")
                 elif (wallSide == 'right' and autopilot.distanceRight > 50):
                     moveInCircleCounter+=1
-                    autopilot.turn(100, -100)
+                    autopilot.turn(400, -100)
                     print("turn right as no wall is detected on the right")
                 else: 
                     moveInCircleCounter = 0   
                     
-                autopilot.forward(500, 100)
+                autopilot.forward(600, 100)
                 print("move forward")
             case 'ballCatching':
                 ball = imProcessing.getBallCoords(frame)
-                if (len(ball) > 0):
-                    ballx = ball[0][0]/width
-                    bally = ball[0][1]/height
-                    print(f"Ball found at x: {ballx} y: {bally}")
-                else:
-
-                    print("Lost ball")
-                    #for i in range(0, 2):
-                    #    autopilot.forward(200, 100)
-                    #    time.sleep(0.3)
-                    #autopilot.forward(500, 70)
-                    #autopilot.setDoorState(False)
-                    #party()
+                if (len(ball) == 0):
+                    print("ball lost")
                     stage = 'ballFinding'
-                    
-
-
-                    #autopilot.forward(400, -100)
-                    #for i in range(6):
-                    #    autopilot.turn(300, 100)
-                    #    time.sleep(1)
-                    #    ball = imProcessing.getBallCoords(frame)
-                    #    if(len(ball) > 0):
-                    #        stage = 'ballCatching'
-                    #        autopilot.setDoorState(True)
-                    #        break
                     continue
+                
+                ballx = ball[0][0]/width
+                bally = ball[0][1]/height
+                print(f"Ball found at x: {ballx} y: {bally}")
                 if ballx < 0.45:
-                    autopilot.turn((0.5 - ballx) * someconstant, 100)
+                    autopilot.turn((0.5 - ballx) * someconstant, 80)
                     print("Turned to the left")
                 elif ballx > 0.55:
-                    autopilot.turn((ballx-0.5) * someconstant, -100)
+                    autopilot.turn((ballx-0.5) * someconstant, -80)
                     print("Turned to the right")
                 else:
                     if(bally > 0.925):
@@ -214,18 +195,17 @@ def autoControl(): #still partly pseudocode
                         #    time.sleep(0.3)
                         autopilot.forward(500, 70)
                         autopilot.setDoorState(False)
-                        party()
                         stage = 'goalFinding'
 
                         autopilot.forward(400, -100)
-                        for i in range(6):
+                        """for i in range(6):
                             autopilot.turn(300, 100)
                             time.sleep(1)
                             ball = imProcessing.getBallCoords(frame)
                             if(len(ball) > 0):
                                 stage = 'ballcapturing'
                                 autopilot.setDoorState(True)
-                                break
+                                break"""
                         continue
                     if(bally > 0.75):
                         autopilot.forward(200, 100)
@@ -242,7 +222,7 @@ def autoControl(): #still partly pseudocode
                     goalLowerEdge = (target[1] + target[3])/height
                     goalUpperEdge = target[1]/height
                     print(f"Target found at x: {target[0]} y: {target[1]} centerX: {goalCenterx * width} %: {goalCenterx} lower: {goalLowerEdge} upper: {goalUpperEdge}")
-                    party()
+                    
                     stage = 'goalScoring'
                 else:
                     if (wallSide == 'left' and autopilot.distanceLeft > 50):
@@ -295,7 +275,7 @@ def autoControl(): #still partly pseudocode
                         inFrontOfGoal = True
                         autopilot.forward(200, -100)
                     
-                time.sleep(1)
+                
             case _:
                 print("No clue what's happening anymore (stage matching error in autoControl() )")
     
@@ -528,7 +508,7 @@ def controls():
         if enableAutopilot:
             if autopilot.stopped:
                 autopilot.stopped = False
-                threading.Thread(target=autoControl, daemon=False).start()
+                threading.Thread(target=autoControl, daemon=True).start()
             return Response("success")
         
         verticalSpeed = data["verticalSpeed"]

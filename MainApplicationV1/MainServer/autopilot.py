@@ -79,8 +79,8 @@ class Autopilot:
     
     def setDoorState(self, newState):
         self.doorState = newState
-        self.stop()
-        time.sleep(5)
+        self.stop() 
+        #time.sleep(5)#cooldown of 5 secs
     
     def setLightsState(self, newState):
         self.lights = newState
