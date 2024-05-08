@@ -176,10 +176,10 @@ class ImageProcessing():
                     self.ball_lowercolor_2 = np.array([0/2, 50*255/100, 40*255/100])
                     self.ball_uppercolor_2 = np.array([15/2, 100*255/100, 70*255/100])
                 case "red":
-                    self.ball_lowercolor = np.array([345/2, 60*255/100, 10*255/100])
-                    self.ball_uppercolor = np.array([359/2, 100*255/100, 40*255/100])
+                    self.ball_lowercolor = np.array([320/2, 60*255/100, 10*255/100])
+                    self.ball_uppercolor = np.array([359/2, 100*255/100, 50*255/100])
                     self.ball_lowercolor_2 = np.array([0/2, 60*255/100, 10*255/100])
-                    self.ball_uppercolor_2 = np.array([10/2, 100*255/100, 40*255/100])
+                    self.ball_uppercolor_2 = np.array([10/2, 100*255/100, 50*255/100])
                 case "yellow":
                     self.ball_lowercolor = np.array([65/2, 40*255/100, 60*255/100])
                     self.ball_uppercolor = np.array([80/2, 90*255/100, 90*255/100])

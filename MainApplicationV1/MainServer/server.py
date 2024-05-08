@@ -98,7 +98,7 @@ def autoControl(): #still partly pseudocode
     inFrontOfGoal = False
 
     while not autopilot.stopped:
-        time.sleep(1) # time to let the camera capture not blurry images 
+        time.sleep(2) # time to let the camera capture not blurry images 
 
         print(f"\n\ndistance front right: {autopilot.distanceFrontRight} \n" +
               f"distance front left: {autopilot.distanceFrontLeft} \n" +
@@ -132,7 +132,7 @@ def autoControl(): #still partly pseudocode
             
         match (stage):
             case 'ballFinding':
-                ball = imProcessing.getBallCoords(frame)
+                #ball = imProcessing.getBallCoords(frame)
                 if (len(ball) > 0):  
                     ballx = ball[0][0]/width
                     bally = ball[0][1]/height
@@ -179,26 +179,26 @@ def autoControl(): #still partly pseudocode
                     print(f"Ball found at x: {ballx} y: {bally}")
                 else:
 
-                    print("Capturing ball")
+                    print("Lost ball")
                     #for i in range(0, 2):
                     #    autopilot.forward(200, 100)
                     #    time.sleep(0.3)
-                    autopilot.forward(500, 70)
-                    autopilot.setDoorState(False)
-                    party()
-                    stage = 'goalFinding'
+                    #autopilot.forward(500, 70)
+                    #autopilot.setDoorState(False)
+                    #party()
+                    stage = 'ballFinding'
                     
 
 
-                    autopilot.forward(400, -100)
-                    for i in range(6):
-                        autopilot.turn(300, 100)
-                        time.sleep(1)
-                        ball = imProcessing.getBallCoords(frame)
-                        if(len(ball) > 0):
-                            stage = 'ballcapturing'
-                            autopilot.setDoorState(True)
-                            break
+                    #autopilot.forward(400, -100)
+                    #for i in range(6):
+                    #    autopilot.turn(300, 100)
+                    #    time.sleep(1)
+                    #    ball = imProcessing.getBallCoords(frame)
+                    #    if(len(ball) > 0):
+                    #        stage = 'ballCatching'
+                    #        autopilot.setDoorState(True)
+                    #        break
                     continue
                 if ballx < 0.45:
                     autopilot.turn((0.5 - ballx) * someconstant, 100)
