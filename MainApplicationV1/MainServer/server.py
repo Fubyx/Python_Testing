@@ -133,7 +133,7 @@ def autoControl(): #still partly pseudocode
             
         match (stage):
             case 'ballFinding':
-                #ball = imProcessing.getBallCoords(frame)
+                ball = imProcessing.getBallCoords(frame)
                 if (len(ball) > 0):  
                     ballx = ball[0][0]/width
                     bally = ball[0][1]/height
