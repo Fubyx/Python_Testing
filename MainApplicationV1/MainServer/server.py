@@ -242,7 +242,8 @@ def autoControl(): #still partly pseudocode
                 target = imProcessing.getTargetCoords(frame)
                 if (target is None):
                     print("Lost the target")
-                    break
+                    stage = 'goalFinding'
+                    continue
 
                 goalCenterx = (target[2] / 2 + target[0])/width
                 goalLowerEdge = (target[1] + target[3])/height
