@@ -73,7 +73,7 @@ def autoControl(): #still partly pseudocode
     #autopilot.setLightsState(0) 
     #imProcessing.setLightLevel(0)
     #autopilot.setDoorState(True)
-    imProcessing.setModeToBall()
+    #imProcessing.setModeToBall()
     imProcessing.setBallColor(autopilot.ballColor)
     imProcessing.setTargetColor(autopilot.doorColor)
     #prevLigths = autopilot.lights
@@ -86,7 +86,7 @@ def autoControl(): #still partly pseudocode
     ball = []
     height, width, _ = frame.shape 
     #"""Incoming#----------------------------------
-    TURN_AMOUNT = 50
+    #TURN_AMOUNT = 50
 
     stage = 'ballFinding'
     dodgeObstacle = False
@@ -117,12 +117,6 @@ def autoControl(): #still partly pseudocode
             moveInCircleCounter = 0
             autopilot.turn(100, 100)
             print("turn left as wall is detected too close on the right")
-
-        # Removed as this functionality is already added to recieve_frame
-        #if (prevLigths != (average_brightness < 100)):
-        #    prevLigths = (average_brightness < 100)
-        #    imProcessing.setLightLevel(prevLigths)
-        #    autopilot.lights = prevLigths
 
         if dodgeObstacle:
             if dodgeDirection == 'left' and autopilot.distanceFrontRight < 40:
@@ -193,16 +187,19 @@ def autoControl(): #still partly pseudocode
                     autopilot.setDoorState(False)
                     party()
                     stage = 'goalFinding'
-                    continue
-
-
-                    #autopilot.forward(400, -100)
-                    #time.sleep(1)
-                    #ball = imProcessing.getBallCoords(frame)
-                    #if(len(ball) > 0):
-                    #    autopilot.setDoorState(True)
-                    #    continue
                     
+
+
+                    autopilot.forward(400, -100)
+                    for i in range(6):
+                        autopilot.turn(300, 100)
+                        time.sleep(1)
+                        ball = imProcessing.getBallCoords(frame)
+                        if(len(ball) > 0):
+                            stage = 'ballcapturing'
+                            autopilot.setDoorState(True)
+                            break
+                    continue
                 if ballx < 0.45:
                     autopilot.turn((0.5 - ballx) * someconstant, 100)
                     print("Turned to the left")
@@ -220,12 +217,15 @@ def autoControl(): #still partly pseudocode
                         party()
                         stage = 'goalFinding'
 
-                        #autopilot.forward(400, -100)
-                        #time.sleep(1)
-                        #ball = imProcessing.getBallCoords(frame)
-                        #if(len(ball) > 0):
-                        #    autopilot.setDoorState(True)
-                        #    continue
+                        autopilot.forward(400, -100)
+                        for i in range(6):
+                            autopilot.turn(300, 100)
+                            time.sleep(1)
+                            ball = imProcessing.getBallCoords(frame)
+                            if(len(ball) > 0):
+                                stage = 'ballcapturing'
+                                autopilot.setDoorState(True)
+                                break
                         continue
                     if(bally > 0.75):
                         autopilot.forward(200, 100)
@@ -278,11 +278,10 @@ def autoControl(): #still partly pseudocode
                     if inFrontOfGoal:
                         print("Shooting")
                         autopilot.setDoorState(True)
-                        autopilot.forward(200, 100)
-                        time.sleep(1)
-                        autopilot.forward(200, 100)
+                        autopilot.forward(500, 70)
                         autopilot.setDoorState(False)
-                        break
+                        stage = 'ballFinding'
+                        continue
                     elif goalUpperEdge < 0.65:
                         autopilot.forward(400, 75)
                         
